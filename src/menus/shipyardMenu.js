@@ -15,7 +15,7 @@ export function getShipyardContent() {
 export function renderShipyardTable() {
     const leftCol = document.getElementById('shipyard-left');
     const rightCol = document.getElementById('shipyard-right');
-    const buttonsDiv = document.getElementById('tab-buttons');
+    const buttonsDiv = window.currentMenu?.getButtonContainer();
     if (!leftCol || !rightCol || !buttonsDiv) return;
     
     leftCol.innerHTML = '';

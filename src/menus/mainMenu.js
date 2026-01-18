@@ -1,4 +1,4 @@
-import { ce, createTabs, createTwoColumnLayout, createTopButtons } from '../ui.js';
+import { ce, Menu, createTwoColumnLayout, createTopButtons } from '../ui.js';
 import { getTravelContent, renderTravelTab } from './travelMenu.js';
 import { getShipyardContent, renderShipyardTable } from './shipyardMenu.js';
 import { getMarketContent, renderMarketTable } from './marketMenu.js';
@@ -54,46 +54,35 @@ export function getCaptainStatus(captain) {
 export function showMainMenu() {
     const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
     
-    const tabs = [
-        {
-            label: 'Travel',
-            content: getTravelContent(),
-            onActivate: () => renderTravelTab()
-        },
-        {
-            label: 'Info',
-            content: getSystemInfoContent(currentSystem)
-        },
-        {
-            label: 'Shipyard',
-            content: getShipyardContent(),
-            onActivate: () => renderShipyardTable()
-        },
-        {
-            label: 'Market',
-            content: getMarketContent(currentSystem),
-            onActivate: () => renderMarketTable(currentSystem)
-        }
-    ];
-    
-    const container = document.getElementById('game-container');
-    container.innerHTML = '';
-    
-    // Create shared button container
-    const buttonContainer = ce({
-        id: 'tab-buttons',
-        className: 'button-container'
-    });
-    
-    const menu = ce({
-        className: 'menu',
-        children: [
-            createTabs(tabs),
-            buttonContainer
+    const menu = new Menu({
+        tabs: [
+            {
+                label: 'Travel',
+                content: getTravelContent(),
+                onActivate: () => renderTravelTab()
+            },
+            {
+                label: 'Info',
+                content: getSystemInfoContent(currentSystem)
+            },
+            {
+                label: 'Shipyard',
+                content: getShipyardContent(),
+                onActivate: () => renderShipyardTable()
+            },
+            {
+                label: 'Market',
+                content: getMarketContent(currentSystem),
+                onActivate: () => renderMarketTable(currentSystem)
+            }
         ]
     });
     
-    container.appendChild(menu);
+    menu.render();
+    
+    // Store menu reference globally so tabs can access button container
+    window.currentMenu = menu;
+    
     createTopButtons(showComputerScreen, showOptionsModal);
 }
 

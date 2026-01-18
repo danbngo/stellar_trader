@@ -1,0 +1,46 @@
+/* Tabs System */
+.tabs-container {
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 2px solid #09f;
+    margin-bottom: 0.9375rem;
+}
+
+.tab-button {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #09f;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    padding: 0.625rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.0625rem;
+}
+
+.tab-button:hover {
+    color: #0bf;
+    background: rgba(0, 191, 255, 0.1);
+}
+
+.tab-button.active {
+    color: #0bf;
+    border-bottom-color: #0bf;
+}
+
+.tab-content {
+    display: none;
+    overflow-y: auto;
+    max-height: 100%;
+    height: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}

@@ -4,7 +4,110 @@ import { ce, closeModal } from './utils.js';
 export { ce } from './utils.js';
 
 /**
- * Display a menu with title, content, and buttons
+ * Menu class with integrated tabs, scrollable content, and fixed buttons
+ */
+export class Menu {
+    constructor(params = {}) {
+        this.tabs = params.tabs || [];
+        this.activeTabIndex = 0;
+        this.container = null;
+        this.tabContentElements = [];
+        this.buttonContainer = null;
+    }
+
+    render() {
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.innerHTML = '';
+
+        // Create tab buttons
+        const tabButtons = this.tabs.map((tab, index) => 
+            ce({
+                tag: 'button',
+                className: index === 0 ? 'tab-button active' : 'tab-button',
+                text: tab.label,
+                attrs: { 'data-tab-index': index },
+                onclick: () => this.switchTab(index)
+            })
+        );
+
+        // Create tab header
+        const tabsHeader = ce({
+            className: 'menu-tabs-header',
+            children: tabButtons
+        });
+
+        // Create tab content elements
+        this.tabContentElements = this.tabs.map((tab, index) => {
+            const content = typeof tab.content === 'string' 
+                ? ce({ html: tab.content })
+                : tab.content;
+            
+            return ce({
+                className: index === 0 ? 'menu-tab-content active' : 'menu-tab-content',
+                attrs: { 'data-tab-index': index },
+                children: [content]
+            });
+        });
+
+        // Create scrollable content container
+        const contentContainer = ce({
+            className: 'menu-content-container',
+            children: this.tabContentElements
+        });
+
+        // Create button container
+        this.buttonContainer = ce({
+            className: 'menu-button-container'
+        });
+
+        // Create menu
+        this.container = ce({
+            className: 'menu',
+            children: [
+                tabsHeader,
+                contentContainer,
+                this.buttonContainer
+            ]
+        });
+
+        gameContainer.appendChild(this.container);
+
+        // Activate first tab
+        if (this.tabs[0]?.onActivate) {
+            setTimeout(() => this.tabs[0].onActivate(), 0);
+        }
+    }
+
+    switchTab(index) {
+        this.activeTabIndex = index;
+
+        // Update tab buttons
+        const tabButtons = this.container.querySelectorAll('.tab-button');
+        tabButtons.forEach((btn, idx) => {
+            btn.classList.toggle('active', idx === index);
+        });
+
+        // Update tab content
+        this.tabContentElements.forEach((content, idx) => {
+            content.classList.toggle('active', idx === index);
+        });
+
+        // Clear buttons
+        this.buttonContainer.innerHTML = '';
+
+        // Call onActivate for new tab
+        if (this.tabs[index]?.onActivate) {
+            this.tabs[index].onActivate();
+        }
+    }
+
+    getButtonContainer() {
+        return this.buttonContainer;
+    }
+}
+
+/**
+ * Display a menu with title, content, and buttons (legacy function)
  */
 export function showMenu(params = {}) {
     const container = document.getElementById('game-container');

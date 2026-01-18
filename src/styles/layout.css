@@ -1,0 +1,18 @@
+
+/* Two Column Layout */
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+.column {
+    min-width: 0;
+}
+
+@media (max-width: 75rem) {
+    .two-column-layout {
+        grid-template-columns: 1fr;
+    }
+}

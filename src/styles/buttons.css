@@ -1,0 +1,87 @@
+/* Buttons */
+.menu-button {
+    background: transparent;
+    border: 2px solid #09f;
+    color: #09f;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 0.25rem;
+    min-width: 5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.0625rem;
+}
+
+.menu-button:hover {
+    background: #09f;
+    color: #000;
+    box-shadow: 0 0 0.9375rem rgba(0, 153, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.menu-button:active {
+    transform: scale(0.98);
+}
+
+.menu-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #555;
+    color: #555;
+}
+
+.menu-button:disabled:hover {
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Top Left Buttons */
+.top-right-buttons {
+    position: fixed;
+    top: 1.25rem;
+    left: 1.25rem;
+    display: flex;
+    gap: 0.625rem;
+    z-index: 100;
+}
+
+.icon-button {
+    width: 3.125rem;
+    height: 3.125rem;
+    background: rgba(0, 20, 40, 0.9);
+    border: 2px solid #09f;
+    border-radius: 0.25rem;
+    color: #09f;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0.625rem rgba(0, 153, 255, 0.3);
+}
+
+.icon-button:hover {
+    background: rgba(0, 153, 255, 0.2);
+    box-shadow: 0 0 1.25rem rgba(0, 153, 255, 0.6);
+    transform: scale(1.1);
+}
+
+.icon-button:active {
+    transform: scale(0.95);
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    border-top: 2px solid #09f;
+    bottom: 0;
+    margin: 0 0 0 0;
+    z-index: 10;
+}

@@ -264,7 +264,7 @@ function updateDestinationInfo() {
 }
 
 function renderTravelButtons() {
-    const buttonsDiv = document.getElementById('tab-buttons');
+    const buttonsDiv = window.currentMenu?.getButtonContainer();
     if (!buttonsDiv) return;
     
     buttonsDiv.innerHTML = '';

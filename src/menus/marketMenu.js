@@ -43,7 +43,7 @@ export function getMarketContent(system) {
 export function renderMarketTable(system) {
     const leftCol = document.getElementById('market-left');
     const rightCol = document.getElementById('market-right');
-    const buttonsDiv = document.getElementById('tab-buttons');
+    const buttonsDiv = window.currentMenu?.getButtonContainer();
     if (!leftCol || !rightCol || !buttonsDiv) return;
     
     leftCol.innerHTML = '';

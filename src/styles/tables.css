@@ -1,0 +1,45 @@
+/* Tables */
+table {
+    border-collapse: collapse;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.data-table th {
+    padding: 0.5rem;
+    background: rgba(0, 153, 255, 0.2);
+    border: 1px solid #09f;
+    text-align: left;
+    color: #0bf;
+    font-weight: normal;
+}
+
+.data-table td {
+    text-align: left;
+    padding: 0.5rem;
+    border: 1px solid #09f;
+    color: #09f;
+}
+
+.data-table tbody tr {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(0, 153, 255, 0.1);
+}
+
+.data-table tbody tr.selected {
+    background: rgba(0, 191, 255, 0.2);
+}
+
+.table-container {
+    max-height: 18.75rem;
+    border: 1px solid #09f;
+    border-radius: 0.25rem;
+}

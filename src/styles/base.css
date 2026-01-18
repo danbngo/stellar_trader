@@ -1,0 +1,29 @@
+/* Base styles and resets */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Segoe UI Symbol', monospace;
+    background: #0e0c24;
+    color: #09f;
+    overflow: hidden;
+    font-variant-emoji: text;
+}
+
+.emoji-mono,
+button,
+.icon-button {
+    font-variant-emoji: text;
+    font-family: 'Courier New', 'Segoe UI Symbol', monospace;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, rgb(16, 16, 145) 0%, #000 100%);
+}
