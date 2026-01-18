@@ -17,6 +17,10 @@ export function getShipStatus(ship) {
                 <span class="stat-value">${ship.hull}/${ship.maxHull}</span>
             </div>
             <div class="stat-line">
+                <span class="stat-label">Shields:</span>
+                <span class="stat-value">${ship.shields}/${ship.maxShields}</span>
+            </div>
+            <div class="stat-line">
                 <span class="stat-label">Fuel:</span>
                 <span class="stat-value">${ship.fuel}/${ship.maxFuel}</span>
             </div>

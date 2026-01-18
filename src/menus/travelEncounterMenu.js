@@ -195,7 +195,7 @@ function renderEncounterContent() {
             cells: [
                 ship.name,
                 ship.type,
-                `Hull: ${ship.hull}/${ship.maxHull} | Weapons: ${weapons}`
+                `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields} | Weapons: ${weapons}`
             ],
             data: ship
         };
@@ -206,9 +206,9 @@ function renderEncounterContent() {
         let detailsDisplay = '';
         
         if (ship.type === 'Pirate' || ship.type === 'Police') {
-            detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Weapons: ${ship.weapons} | Threat: ${ship.threat}`;
+            detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields} | Weapons: ${ship.weapons} | Threat: ${ship.threat}`;
         } else if (ship.type === 'Merchant') {
-            detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull}`;
+            detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields}`;
         }
         
         return {
@@ -301,6 +301,9 @@ function resumeJourney() {
 }
 
 function resolveEncounter() {
+    // Restore player shields after encounter
+    window.gameState.ship.restoreShields();
+    
     activeEncounter = null;
     renderEncounterContent();
     renderJourneyContent();
@@ -341,6 +344,9 @@ function startTravelInterval() {
 
 function triggerEncounter() {
     if (remainingEncounters.length === 0) return;
+    
+    // Restore player shields before encounter
+    window.gameState.ship.restoreShields();
     
     activeEncounter = remainingEncounters.shift();
     isPaused = true;

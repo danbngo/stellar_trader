@@ -172,7 +172,12 @@ function updateTravelMap() {
 }
 
 function selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top) {
-    const tripDuration = Math.ceil(distance / 1.25); // 4x duration: 1 day per 1.25 distance units
+    // Calculate trip duration based on distance and ship speed
+    const baseSpeed = 1.25; // Base speed units per day
+    const shipSpeed = window.gameState.ship.speed || 1.0;
+    const effectiveSpeed = baseSpeed * shipSpeed;
+    const tripDuration = Math.ceil(distance / effectiveSpeed);
+    
     window.selectedDestination = { system, index, distance, fuelNeeded, canReach, tripDuration };
     
     updateTravelMap(); // Redraw to show line

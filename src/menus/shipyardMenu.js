@@ -1,6 +1,7 @@
 import { ce, createDataTable, createButton } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
-import { Ship } from '../classes/Ship.js';
+import { generateShip } from '../generators/shipGenerators.js';
+import { SCOUT, FREIGHTER, DESTROYER } from '../defs/SHIP_TYPES.js';
 
 export function getShipyardContent() {
     return `
@@ -34,14 +35,14 @@ export function renderShipyardTable() {
     const yourShipsTable = createDataTable({
         id: 'your-ships',
         scrollable: true,
-        headers: ['Name', 'Type', 'Hull', 'Fuel', 'Cargo', 'Status'],
+        headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Status'],
         rows: window.gameState.ownedShips.map((ship, idx) => ({
             cells: [
                 ship.name, 
                 ship.type, 
-                `${ship.hull}/${ship.maxHull}`, 
-                `${ship.fuel}/${ship.maxFuel}`, 
-                ship.maxCargo,
+                `${ship.hull}/${ship.maxHull}`,
+                `${ship.shields}/${ship.maxShields}`,
+                `${ship.speed.toFixed(1)}x`,
                 ship === window.gameState.ship ? '<span style="color: #0bf;">ACTIVE</span>' : `${ship.value} cr`
             ],
             data: { ship, index: idx }
@@ -57,9 +58,9 @@ export function renderShipyardTable() {
     leftCol.appendChild(yourShipsSection);
     
     const shipsForSale = [
-        new Ship('Scout Ship', 'Scout', 80, 150, 30, 3),
-        new Ship('Cargo Hauler', 'Freighter', 120, 100, 100, 1),
-        new Ship('Battle Cruiser', 'Combat', 200, 120, 40, 8)
+        generateShip(SCOUT, false),
+        generateShip(FREIGHTER, false),
+        generateShip(DESTROYER, false)
     ];
     
     const shipsSection = ce({
@@ -73,9 +74,9 @@ export function renderShipyardTable() {
     const shipsTable = createDataTable({
         id: 'ships-for-sale',
         scrollable: true,
-        headers: ['Name', 'Type', 'Hull', 'Fuel', 'Cargo', 'Price'],
+        headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Price'],
         rows: shipsForSale.map((ship, idx) => ({
-            cells: [ship.name, ship.type, ship.maxHull, ship.maxFuel, ship.maxCargo, `${ship.value} cr`],
+            cells: [ship.name, ship.type, ship.maxHull, ship.maxShields, `${ship.speed.toFixed(1)}x`, `${ship.value} cr`],
             data: { ship, index: idx }
         })),
         onSelect: (rowData) => {
@@ -160,20 +161,12 @@ function renderShipyardButtons() {
 
 function buyShip(index) {
     const shipsForSale = [
-        new Ship('Scout Ship', 'Scout', 80, 150, 30, 3),
-        new Ship('Cargo Hauler', 'Freighter', 120, 100, 100, 1),
-        new Ship('Battle Cruiser', 'Combat', 200, 120, 40, 8)
+        generateShip(SCOUT, false),
+        generateShip(FREIGHTER, false),
+        generateShip(DESTROYER, false)
     ];
     
-    const shipTemplate = shipsForSale[index];
-    const newShip = new Ship(
-        shipTemplate.name,
-        shipTemplate.type,
-        shipTemplate.maxHull,
-        shipTemplate.maxFuel,
-        shipTemplate.maxCargo,
-        shipTemplate.weapons
-    );
+    const newShip = shipsForSale[index];
     
     if (window.gameState.spendCredits(newShip.value)) {
         window.gameState.ownedShips.push(newShip);

@@ -6,7 +6,8 @@ export class GameState {
     constructor() {
         this.captain = new Officer('Captain');
         
-        this.ship = new Ship('SS Wanderer', 'Light Freighter', 100, 100, 50, 2);
+        // Create starting ship: name, type, hull, shields, fuel, maxCargo, speed, weapons
+        this.ship = new Ship('SS Wanderer', 'Light Freighter', 100, 50, 100, 50, 1.0, 2);
         
         this.ownedShips = [this.ship];
         
