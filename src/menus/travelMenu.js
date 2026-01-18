@@ -5,9 +5,9 @@ import { generatePirateShip, generatePoliceShip, generateMerchantShip } from '..
 import { showTravelEncounterMenu } from './travelEncounterMenu.js';
 
 export function getTravelContent() {
-    return `
-        <div id="travel-map-container"></div>
-        <div class="stats-group" style="margin-top: 15px;">
+    const leftColumn = '<div id="travel-map-container"></div>';
+    const rightColumn = `
+        <div class="stats-group">
             <div class="stat-line">
                 <span class="stat-label">Current Location:</span>
                 <span class="stat-value">${window.gameState.location}</span>
@@ -16,6 +16,8 @@ export function getTravelContent() {
         </div>
         <div id="travel-buttons" class="button-container"></div>
     `;
+    
+    return createTwoColumnLayout({ leftColumn, rightColumn });
 }
 
 export function renderTravelTab() {
@@ -103,11 +105,9 @@ function updateTravelMap() {
     const systemPositions = new Map();
     
     window.gameState.starSystems.forEach((system, index) => {
-        // Only show systems that have been seen
-        if (!window.gameState.seenStarSystems.has(system)) return;
-        
         const isCurrent = index === window.gameState.currentSystemIndex;
         const isVisited = window.gameState.visitedStarSystems.has(system);
+        const isSeen = window.gameState.seenStarSystems.has(system);
         const isSelected = window.selectedDestination && window.selectedDestination.index === index;
         const distance = calculateDistance(currentSystem, system);
         
@@ -130,27 +130,29 @@ function updateTravelMap() {
             systemClass += ' selected';
         } else if (isVisited) {
             systemClass += ' visited';
+        } else if (isSeen) {
+            systemClass += ' visited';  // Seen systems use same style as visited
         } else {
-            systemClass += ' seen';
+            systemClass += ' seen';  // Unseen systems
         }
         
         const systemDot = ce({
             className: systemClass,
             style: { left: `${left}px`, top: `${top}px` },
-            attrs: { title: isVisited ? `${system.name} - ${fuelNeeded} fuel` : '???' },
-            onclick: isCurrent ? null : () => selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top)
+            attrs: { title: isVisited ? `${system.name} - ${fuelNeeded} fuel` : isSeen ? `${system.name} - ${fuelNeeded} fuel` : '???' },
+            onclick: isCurrent ? null : () => selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top, isVisited, isSeen)
         });
         
         viewport.appendChild(systemDot);
         
-        // Show name for visited systems, "?" for seen but unvisited
+        // Show name for visited/seen systems, "?" for unseen
         const label = ce({
             className: 'travel-system-label',
-            text: isVisited ? system.name : '?',
+            text: isVisited ? system.name : isSeen ? system.name : '?',
             style: { 
                 left: `${left}px`, 
                 top: `${top}px`,
-                color: isCurrent ? '#0bf' : isVisited ? '#0f0' : '#888'
+                color: isCurrent ? '#0bf' : (isVisited || isSeen) ? '#0f0' : '#888'
             }
         });
         viewport.appendChild(label);
@@ -212,7 +214,7 @@ function updateTravelMap() {
     }
 }
 
-function selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top) {
+function selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top, isVisited, isSeen) {
     // Calculate trip duration based on distance, ship speed, and piloting skill
     const baseSpeed = 1.25; // Base speed units per day
     const shipSpeed = window.gameState.ship.speed || 1.0;
@@ -220,7 +222,7 @@ function selectTravelDestination(system, index, distance, fuelNeeded, canReach, 
     const effectiveSpeed = baseSpeed * shipSpeed * pilotingBonus;
     const tripDuration = Math.ceil(distance / effectiveSpeed);
     
-    window.selectedDestination = { system, index, distance, fuelNeeded, canReach, tripDuration };
+    window.selectedDestination = { system, index, distance, fuelNeeded, canReach, tripDuration, isVisited, isSeen };
     
     updateTravelMap(); // Redraw to show line
     updateDestinationInfo();
@@ -232,14 +234,17 @@ function updateDestinationInfo() {
     if (!infoDiv) return;
     
     if (window.selectedDestination) {
-        const { system, distance, fuelNeeded, tripDuration, canReach } = window.selectedDestination;
-        const isVisited = window.gameState.visitedStarSystems.has(system);
-        const systemName = isVisited ? system.name : 'Unknown System';
+        const { system, distance, fuelNeeded, tripDuration, canReach, isVisited, isSeen } = window.selectedDestination;
+        const systemName = (isVisited || isSeen) ? system.name : 'Unknown System';
         
         infoDiv.innerHTML = `
             <div class="stat-line" style="margin-top: 10px;">
                 <span class="stat-label">Destination:</span>
                 <span class="stat-value">${systemName}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Visited:</span>
+                <span class="stat-value">${isVisited ? 'Yes' : 'No'}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Distance:</span>
@@ -266,9 +271,8 @@ function renderTravelButtons() {
     buttonsDiv.innerHTML = '';
     
     if (window.selectedDestination) {
-        const { system, index, canReach } = window.selectedDestination;
-        const isVisited = window.gameState.visitedStarSystems.has(system);
-        const systemName = isVisited ? system.name : 'Unknown System';
+        const { system, index, canReach, isVisited, isSeen } = window.selectedDestination;
+        const systemName = (isVisited || isSeen) ? system.name : 'Unknown System';
         
         buttonsDiv.appendChild(createButton({
             text: `Travel to ${systemName}`,
