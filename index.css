@@ -5,10 +5,20 @@
 }
 
 body {
-    font-family: 'Courier New', monospace;
+    font-family: 'Courier New', 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Segoe UI Symbol', monospace;
     background: #000;
     color: #09f;
     overflow: hidden;
+    /* Force emoji monochrome rendering */
+    font-variant-emoji: text;
+}
+
+/* Force all emojis to monochrome across the app */
+.emoji-mono,
+button,
+.icon-button {
+    font-variant-emoji: text;
+    font-family: 'Courier New', 'Segoe UI Symbol', monospace;
 }
 
 #game-container {
@@ -425,6 +435,16 @@ body {
     height: 10px;
     box-shadow: 0 0 12px rgba(0, 191, 255, 1);
     animation: pulse 2s infinite;
+}
+
+.travel-system.visited {
+    background: #0f0;
+    cursor: pointer;
+}
+
+.travel-system.seen {
+    background: #888;
+    cursor: pointer;
 }
 
 .travel-system.reachable {

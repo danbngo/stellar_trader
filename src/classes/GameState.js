@@ -14,6 +14,18 @@ export class GameState {
         this.currentSystemIndex = Math.floor(this.starSystems.length / 2);
         this.location = this.starSystems[this.currentSystemIndex].name;
         this.day = 1;
+        
+        // Track seen and visited systems
+        this.seenStarSystems = new Set();
+        this.visitedStarSystems = new Set();
+        
+        // Mark starting system and its neighbors as seen
+        const startSystem = this.starSystems[this.currentSystemIndex];
+        this.visitedStarSystems.add(startSystem);
+        this.seenStarSystems.add(startSystem);
+        startSystem.neighborSystems.forEach(neighbor => {
+            this.seenStarSystems.add(neighbor);
+        });
     }
     
     damageShip(amount) {

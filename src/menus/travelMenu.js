@@ -37,6 +37,11 @@ export function renderTravelTab() {
                 id: 'travel-map-canvas',
                 children: [
                     ce({
+                        tag: 'svg',
+                        id: 'travel-lines-svg',
+                        style: { position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', pointerEvents: 'none' }
+                    }),
+                    ce({
                         className: 'travel-map-viewport',
                         id: 'travel-map-viewport'
                     })
@@ -46,6 +51,17 @@ export function renderTravelTab() {
     });
     
     mapContainer.appendChild(travelMap);
+    
+    // Add resize observer to recenter map when canvas resizes
+    const canvas = document.getElementById('travel-map-canvas');
+    if (canvas && window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+            updateTravelMap();
+            updateDestinationInfo();
+        });
+        resizeObserver.observe(canvas);
+    }
+    
     updateTravelMap();
     updateDestinationInfo();
 }
@@ -53,66 +69,96 @@ export function renderTravelTab() {
 function updateTravelMap() {
     const viewport = document.getElementById('travel-map-viewport');
     const canvas = document.getElementById('travel-map-canvas');
-    if (!viewport || !canvas || !window.gameState) return;
+    const svg = document.getElementById('travel-lines-svg');
+    if (!viewport || !canvas || !svg || !window.gameState) return;
     
     viewport.innerHTML = '';
+    svg.innerHTML = '';
     
     const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
     const canvasRect = canvas.getBoundingClientRect();
     const centerX = canvasRect.width / 2;
     const centerY = canvasRect.height / 2;
     
-    // Calculate view range (show systems within a certain radius)
-    const viewRadius = 50; // Show systems within 50 units of current position
+    // Store positions for line drawing
+    const systemPositions = new Map();
     
     window.gameState.starSystems.forEach((system, index) => {
-        const isCurrent = index === window.gameState.currentSystemIndex;
-        const distance = calculateDistance(currentSystem, system);
+        // Only show systems that have been seen
+        if (!window.gameState.seenStarSystems.has(system)) return;
         
-        // Only show systems within view radius or current system
-        if (!isCurrent && distance > viewRadius) return;
+        const isCurrent = index === window.gameState.currentSystemIndex;
+        const isVisited = window.gameState.visitedStarSystems.has(system);
+        const distance = calculateDistance(currentSystem, system);
         
         const fuelNeeded = Math.ceil(distance / 2.5);
         const canReach = window.gameState.ship.fuel >= fuelNeeded;
         
         // Calculate relative position to center
-        const relativeX = (system.x - currentSystem.x) * 20; // 5x zoom: scale factor increased from 4 to 20
+        const relativeX = (system.x - currentSystem.x) * 20;
         const relativeY = (system.y - currentSystem.y) * 20;
         
         const left = centerX + relativeX;
         const top = centerY + relativeY;
         
+        systemPositions.set(system, { left, top });
+        
         let systemClass = 'travel-system';
-        if (isCurrent) systemClass += ' current';
-        else if (canReach && !isCurrent) systemClass += ' reachable';
-        else if (!isCurrent) systemClass += ' unreachable';
+        if (isCurrent) {
+            systemClass += ' current';
+        } else if (isVisited) {
+            systemClass += ' visited';
+        } else {
+            systemClass += ' seen';
+        }
         
         const systemDot = ce({
             className: systemClass,
             style: { left: `${left}px`, top: `${top}px` },
-            attrs: { title: `${system.name} - ${fuelNeeded} fuel` },
-            onclick: isCurrent ? null : () => selectTravelDestination(system, index, distance, fuelNeeded, canReach)
+            attrs: { title: isVisited ? `${system.name} - ${fuelNeeded} fuel` : '???' },
+            onclick: isCurrent ? null : () => selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top)
         });
         
         viewport.appendChild(systemDot);
         
+        // Show name for visited systems, "?" for seen but unvisited
         const label = ce({
             className: 'travel-system-label',
-            text: system.name,
+            text: isVisited ? system.name : '?',
             style: { 
                 left: `${left}px`, 
                 top: `${top}px`,
-                color: isCurrent ? '#0bf' : canReach ? '#ff0' : '#f00'
+                color: isCurrent ? '#0bf' : isVisited ? '#0f0' : '#888'
             }
         });
         viewport.appendChild(label);
     });
+    
+    // Draw line if destination is selected
+    if (window.selectedDestination) {
+        const currentPos = systemPositions.get(currentSystem);
+        const destSystem = window.gameState.starSystems[window.selectedDestination.index];
+        const destPos = systemPositions.get(destSystem);
+        
+        if (currentPos && destPos) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', currentPos.left);
+            line.setAttribute('y1', currentPos.top);
+            line.setAttribute('x2', destPos.left);
+            line.setAttribute('y2', destPos.top);
+            line.setAttribute('stroke', window.selectedDestination.canReach ? '#0f0' : '#f00');
+            line.setAttribute('stroke-width', '2');
+            line.setAttribute('stroke-dasharray', '5,5');
+            svg.appendChild(line);
+        }
+    }
 }
 
-function selectTravelDestination(system, index, distance, fuelNeeded, canReach) {
+function selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top) {
     const tripDuration = Math.ceil(distance / 1.25); // 4x duration: 1 day per 1.25 distance units
     window.selectedDestination = { system, index, distance, fuelNeeded, canReach, tripDuration };
     
+    updateTravelMap(); // Redraw to show line
     updateDestinationInfo();
     renderTravelButtons();
 }
@@ -122,11 +168,18 @@ function updateDestinationInfo() {
     if (!infoDiv) return;
     
     if (window.selectedDestination) {
-        const { system, fuelNeeded, tripDuration, canReach } = window.selectedDestination;
+        const { system, distance, fuelNeeded, tripDuration, canReach } = window.selectedDestination;
+        const isVisited = window.gameState.visitedStarSystems.has(system);
+        const systemName = isVisited ? system.name : 'Unknown System';
+        
         infoDiv.innerHTML = `
             <div class="stat-line" style="margin-top: 10px;">
                 <span class="stat-label">Destination:</span>
-                <span class="stat-value">${system.name}</span>
+                <span class="stat-value">${systemName}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Distance:</span>
+                <span class="stat-value">${distance.toFixed(1)} units</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Fuel Cost:</span>
@@ -149,13 +202,15 @@ function renderTravelButtons() {
     buttonsDiv.innerHTML = '';
     
     if (window.selectedDestination) {
-        const { system, index, fuelNeeded, canReach } = window.selectedDestination;
+        const { system, index, canReach } = window.selectedDestination;
+        const isVisited = window.gameState.visitedStarSystems.has(system);
+        const systemName = isVisited ? system.name : 'Unknown System';
         
         buttonsDiv.appendChild(createButton({
-            text: `Travel to ${system.name} (${fuelNeeded} fuel)`,
+            text: `Travel to ${systemName}`,
             action: () => travelToSystem(index),
             disabled: !canReach,
-            disabledReason: canReach ? '' : `Need ${fuelNeeded} fuel (have ${window.gameState.ship.fuel})`
+            disabledReason: canReach ? '' : `Not enough fuel (need ${window.selectedDestination.fuelNeeded})`
         }));
     }
 }
@@ -168,6 +223,13 @@ function travelToSystem(index) {
     if (canReach && window.gameState.useFuel(fuelNeeded)) {
         const fromSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
         const toSystem = window.gameState.starSystems[index];
+        
+        // Mark destination as visited and add its neighbors to seen systems
+        window.gameState.visitedStarSystems.add(toSystem);
+        window.gameState.seenStarSystems.add(toSystem);
+        toSystem.neighborSystems.forEach(neighbor => {
+            window.gameState.seenStarSystems.add(neighbor);
+        });
         
         // Calculate encounter chance
         const avgPiracy = (fromSystem.piracyLevel + toSystem.piracyLevel) / 2;

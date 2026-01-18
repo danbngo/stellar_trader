@@ -3,6 +3,7 @@ export class StarSystem {
         this.name = name;
         this.x = x;
         this.y = y;
+        this.neighborSystems = [];
         this.marketPrices = this.generateMarketPrices();
         this.cargo = this.generateCargo();
         this.piracyLevel = Math.floor(Math.random() * 10) + 1; // 1-10

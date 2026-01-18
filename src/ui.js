@@ -260,14 +260,14 @@ export function createTopButtons(showComputerScreen, showOptionsModal) {
             ce({
                 tag: 'button',
                 className: 'icon-button',
-                text: '[C]', // ASCII computer icon
+                html: '&#x1F4BB;&#xFE0E;', // Computer emoji with text variation selector for monochrome
                 attrs: { title: 'Computer' },
                 onclick: showComputerScreen
             }),
             ce({
                 tag: 'button',
                 className: 'icon-button',
-                html: '&#9881;', // Settings gear
+                html: '&#9881;&#xFE0E;', // Settings gear with text variation selector
                 attrs: { title: 'Options' },
                 onclick: showOptionsModal
             })
