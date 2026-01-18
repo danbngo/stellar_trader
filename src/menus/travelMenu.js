@@ -39,7 +39,20 @@ export function renderTravelTab() {
                     ce({
                         tag: 'svg',
                         id: 'travel-lines-svg',
-                        style: { position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', pointerEvents: 'none' }
+                        attrs: {
+                            xmlns: 'http://www.w3.org/2000/svg',
+                            viewBox: '0 0 800 600',
+                            preserveAspectRatio: 'none'
+                        },
+                        style: { 
+                            position: 'absolute', 
+                            top: '0', 
+                            left: '0', 
+                            width: '100%', 
+                            height: '100%', 
+                            pointerEvents: 'none',
+                            zIndex: '1'
+                        }
                     }),
                     ce({
                         className: 'travel-map-viewport',
@@ -140,12 +153,16 @@ function updateTravelMap() {
         const destSystem = window.gameState.starSystems[window.selectedDestination.index];
         const destPos = systemPositions.get(destSystem);
         
-        if (currentPos && destPos) {
+        if (currentPos && destPos && svg) {
+            // Set SVG viewBox to match canvas dimensions
+            const canvasRect = canvas.getBoundingClientRect();
+            svg.setAttribute('viewBox', `0 0 ${canvasRect.width} ${canvasRect.height}`);
+            
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', currentPos.left);
-            line.setAttribute('y1', currentPos.top);
-            line.setAttribute('x2', destPos.left);
-            line.setAttribute('y2', destPos.top);
+            line.setAttribute('x1', currentPos.left.toString());
+            line.setAttribute('y1', currentPos.top.toString());
+            line.setAttribute('x2', destPos.left.toString());
+            line.setAttribute('y2', destPos.top.toString());
             line.setAttribute('stroke', window.selectedDestination.canReach ? '#0f0' : '#f00');
             line.setAttribute('stroke-width', '2');
             line.setAttribute('stroke-dasharray', '5,5');

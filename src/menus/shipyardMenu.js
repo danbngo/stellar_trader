@@ -113,6 +113,34 @@ function renderShipyardButtons() {
         const { ship, index } = window.selectedOwnedShip;
         const isActive = ship === window.gameState.ship;
         
+        // Repair button
+        const damageAmount = ship.maxHull - ship.hull;
+        const repairCost = damageAmount * 5;
+        const canAffordRepair = window.gameState.captain.credits >= repairCost;
+        const needsRepair = damageAmount > 0;
+        
+        buttonsDiv.appendChild(createButton({
+            text: needsRepair ? `Repair Hull (${repairCost} cr)` : 'Hull at Full Integrity',
+            action: () => repairShip(index),
+            disabled: !needsRepair || !canAffordRepair,
+            disabledReason: !needsRepair ? 'No repairs needed' : 
+                          !canAffordRepair ? `Need ${repairCost} credits (have ${window.gameState.captain.credits})` : ''
+        }));
+        
+        // Refuel button
+        const fuelNeeded = ship.maxFuel - ship.fuel;
+        const refuelCost = fuelNeeded * 3;
+        const canAffordRefuel = window.gameState.captain.credits >= refuelCost;
+        const needsFuel = fuelNeeded > 0;
+        
+        buttonsDiv.appendChild(createButton({
+            text: needsFuel ? `Refuel (${refuelCost} cr)` : 'Fuel Tank Full',
+            action: () => refuelShip(index),
+            disabled: !needsFuel || !canAffordRefuel,
+            disabledReason: !needsFuel ? 'Tank is full' :
+                          !canAffordRefuel ? `Need ${refuelCost} credits (have ${window.gameState.captain.credits})` : ''
+        }));
+        
         if (!isActive) {
             buttonsDiv.appendChild(createButton({
                 text: 'Switch To Ship',
@@ -156,6 +184,28 @@ function buyShip(index) {
 function switchToShip(index) {
     window.gameState.ship = window.gameState.ownedShips[index];
     showMainMenu();
+}
+
+function repairShip(index) {
+    const ship = window.gameState.ownedShips[index];
+    const damageAmount = ship.maxHull - ship.hull;
+    const repairCost = damageAmount * 5;
+    
+    if (window.gameState.spendCredits(repairCost)) {
+        ship.repair(damageAmount);
+        renderShipyardTable();
+    }
+}
+
+function refuelShip(index) {
+    const ship = window.gameState.ownedShips[index];
+    const fuelNeeded = ship.maxFuel - ship.fuel;
+    const refuelCost = fuelNeeded * 3;
+    
+    if (window.gameState.spendCredits(refuelCost)) {
+        ship.fuel = ship.maxFuel;
+        renderShipyardTable();
+    }
 }
 
 function sellShip(index) {

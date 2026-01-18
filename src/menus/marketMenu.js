@@ -1,5 +1,6 @@
 import { ce, createDataTable, createButton } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
+import { CARGO_TYPES } from '../defs/CARGO_TYPES.js';
 
 export function getMarketContent(system) {
     return `
@@ -44,15 +45,26 @@ export function renderMarketTable(system) {
     const marketTable = createDataTable({
         id: 'market-goods',
         scrollable: true,
-        headers: ['Commodity', 'Price (per unit)', 'Available'],
-        rows: goods.map(good => ({
-            cells: [
-                good.charAt(0).toUpperCase() + good.slice(1),
-                `${system.marketPrices[good]} cr`,
-                `${system.cargo[good]} units`
-            ],
-            data: { good, price: system.marketPrices[good], available: system.cargo[good] }
-        })),
+        headers: ['Commodity', 'Price (per unit)', 'Base Price', 'Differential', 'Available'],
+        rows: goods.map(good => {
+            const cargoType = CARGO_TYPES[good];
+            const currentPrice = system.marketPrices[good];
+            const basePrice = cargoType.baseValue;
+            const diff = currentPrice - basePrice;
+            const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+            const diffColor = diff > 0 ? '#f00' : diff < 0 ? '#0f0' : '#888';
+            
+            return {
+                cells: [
+                    good.charAt(0).toUpperCase() + good.slice(1),
+                    `${currentPrice} cr`,
+                    `${basePrice} cr`,
+                    `<span style="color: ${diffColor};">${diffText}</span>`,
+                    `${system.cargo[good]} units`
+                ],
+                data: { good, price: currentPrice, available: system.cargo[good] }
+            };
+        }),
         onSelect: (rowData) => {
             window.selectedMarketGood = rowData.data;
             renderMarketButtons(system);

@@ -223,7 +223,8 @@ export function createTabs(tabs) {
     });
     
     if (tabs[0].onActivate) {
-        tabs[0].onActivate();
+        // Use setTimeout to ensure DOM is ready before calling onActivate
+        setTimeout(() => tabs[0].onActivate(), 0);
     }
     
     return container;
