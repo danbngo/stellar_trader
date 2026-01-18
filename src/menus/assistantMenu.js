@@ -1,4 +1,4 @@
-import { Menu, createDataTable, createButton, ce } from '../ui.js';
+import { Menu, createDataTable, createButton, ce, statColorSpan } from '../ui.js';
 import { CARGO_TYPES } from '../defs/CARGO_TYPES.js';
 
 let showBuyPrices = true; // Toggle between buy/sell prices
@@ -72,10 +72,21 @@ function renderTradeInfo() {
             system.name,
             `${distance.toFixed(1)} ly`,
             ...cargoTypes.map(type => {
-                const price = showBuyPrices 
-                    ? system.marketPrices[type] // Price at which the system sells (player buys)
-                    : Math.floor(system.marketPrices[type] * 0.7); // Price at which player can sell (70% of buy price)
-                return `${price} cr`;
+                const baseValue = CARGO_TYPES[type].baseValue;
+                const marketPrice = system.marketPrices[type];
+                
+                if (showBuyPrices) {
+                    // For buying: lower price is better, so invert the ratio
+                    // ratio < 1 means good deal (green), ratio > 1 means bad deal (red)
+                    const ratio = baseValue / marketPrice;
+                    return statColorSpan(`${marketPrice} cr`, ratio);
+                } else {
+                    // For selling: higher price is better (70% of market price)
+                    const sellPrice = Math.floor(marketPrice * 0.7);
+                    // ratio > 1 means good deal (green), ratio < 1 means bad deal (red)
+                    const ratio = sellPrice / baseValue;
+                    return statColorSpan(`${sellPrice} cr`, ratio);
+                }
             })
         ];
         

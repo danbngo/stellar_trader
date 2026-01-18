@@ -5,7 +5,7 @@ import { SKILLS, SKILL_NAMES, MAX_SKILL_LEVEL } from '../defs/SKILLS.js';
 
 export function showTitleScreen() {
     showMenu({
-        title: 'STELLAR TRADER',
+        title: 'Void Merchant',
         content: `
             <p>Welcome to the vast expanse of space.</p>
             <p>Trade goods, explore systems, and build your fortune among the stars.</p>
@@ -39,7 +39,7 @@ function showCredits() {
     showMenu({
         title: 'CREDITS',
         content: `
-            <p>STELLAR TRADER</p>
+            <p>Void Merchant</p>
             <p>A space trading adventure</p>
             <br>
             <p>Version 1.0</p>

@@ -4,6 +4,56 @@ import { ce, closeModal } from './utils.js';
 export { ce } from './utils.js';
 
 /**
+ * Create a colored span based on a ratio value
+ * @param {string} text - The text to display
+ * @param {number} ratio - The ratio value (0.0 to 4.0+)
+ * @returns {string} - HTML string with colored span
+ */
+export function statColorSpan(text, ratio) {
+    let color;
+    
+    if (ratio <= 0.5) {
+        // Dark red to red (0.0 - 0.5)
+        const intensity = Math.floor(100 + (ratio / 0.5) * 100); // 100-200
+        color = `rgb(${intensity}, 0, 0)`;
+    } else if (ratio <= 0.75) {
+        // Red to orange (0.5 - 0.75)
+        const t = (ratio - 0.5) / 0.25;
+        const r = 200;
+        const g = Math.floor(t * 100); // 0-100
+        color = `rgb(${r}, ${g}, 0)`;
+    } else if (ratio <= 1.0) {
+        // Orange to yellow to white (0.75 - 1.0)
+        const t = (ratio - 0.75) / 0.25;
+        const r = 200 + Math.floor(t * 55); // 200-255
+        const g = 100 + Math.floor(t * 155); // 100-255
+        const b = Math.floor(t * 255); // 0-255
+        color = `rgb(${r}, ${g}, ${b})`;
+    } else if (ratio <= 1.5) {
+        // White to light green (1.0 - 1.5)
+        const t = (ratio - 1.0) / 0.5;
+        const r = 255 - Math.floor(t * 105); // 255-150
+        const g = 255;
+        const b = 255 - Math.floor(t * 105); // 255-150
+        color = `rgb(${r}, ${g}, ${b})`;
+    } else if (ratio <= 2.5) {
+        // Light green to green (1.5 - 2.5)
+        const t = (ratio - 1.5) / 1.0;
+        const r = 150 - Math.floor(t * 150); // 150-0
+        const g = 255;
+        const b = 150 - Math.floor(t * 150); // 150-0
+        color = `rgb(${r}, ${g}, ${b})`;
+    } else {
+        // Green to dark green (2.5 - 4.0+)
+        const t = Math.min((ratio - 2.5) / 1.5, 1.0);
+        const g = 255 - Math.floor(t * 155); // 255-100
+        color = `rgb(0, ${g}, 0)`;
+    }
+    
+    return `<span style="color: ${color};">${text}</span>`;
+}
+
+/**
  * Menu class with integrated tabs, scrollable content, and fixed buttons
  */
 export class Menu {
