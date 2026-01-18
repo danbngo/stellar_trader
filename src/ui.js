@@ -404,6 +404,13 @@ export function createTopButtons(callbacks = {}) {
             }),
             ce({
                 tag: 'button',
+                className: window.currentViewMode === 'journal' ? 'icon-button active' : 'icon-button',
+                html: '📖', // Open book emoji
+                attrs: { title: 'Journal', 'data-mode': 'journal' },
+                onclick: () => switchViewMode('journal', callbacks)
+            }),
+            ce({
+                tag: 'button',
                 className: window.currentViewMode === 'assistant' ? 'icon-button active' : 'icon-button',
                 html: '💻', // Computer emoji
                 attrs: { title: 'Assistant', 'data-mode': 'assistant' },
@@ -423,7 +430,7 @@ export function createTopButtons(callbacks = {}) {
 }
 
 /**
- * Switch between system, fleet, captain, assistant, and options views
+ * Switch between system, fleet, captain, journal, assistant, and options views
  */
 function switchViewMode(mode, callbacks) {
     if (window.currentViewMode === mode) return; // Already in this mode
@@ -442,6 +449,8 @@ function switchViewMode(mode, callbacks) {
         callbacks.showFleet();
     } else if (mode === 'captain' && callbacks.showCaptain) {
         callbacks.showCaptain();
+    } else if (mode === 'journal' && callbacks.showJournal) {
+        callbacks.showJournal();
     } else if (mode === 'assistant' && callbacks.showAssistant) {
         callbacks.showAssistant();
     } else if (mode === 'options' && callbacks.showOptions) {

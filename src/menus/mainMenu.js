@@ -57,6 +57,7 @@ export function showMainMenu() {
         showSystem: renderGameView,
         showFleet: () => import('./computerMenu.js').then(m => m.showFleetMenu()),
         showCaptain: () => import('./captainMenu.js').then(m => m.showCaptainMenu()),
+        showJournal: () => import('./journalMenu.js').then(m => m.showJournalMenu()),
         showAssistant: () => import('./assistantMenu.js').then(m => m.showAssistantMenu()),
         showOptions: () => import('./optionsMenu.js').then(m => m.showOptionsMenu())
     });
