@@ -9,14 +9,13 @@ export function getShipyardContent() {
             <div class="column" id="shipyard-left"></div>
             <div class="column" id="shipyard-right"></div>
         </div>
-        <div id="shipyard-buttons" class="button-container"></div>
     `;
 }
 
 export function renderShipyardTable() {
     const leftCol = document.getElementById('shipyard-left');
     const rightCol = document.getElementById('shipyard-right');
-    const buttonsDiv = document.getElementById('shipyard-buttons');
+    const buttonsDiv = document.getElementById('tab-buttons');
     if (!leftCol || !rightCol || !buttonsDiv) return;
     
     leftCol.innerHTML = '';

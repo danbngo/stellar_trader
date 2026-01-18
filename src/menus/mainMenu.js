@@ -58,7 +58,7 @@ export function showMainMenu() {
         {
             label: 'Travel',
             content: getTravelContent(),
-            onActivate: renderTravelTab
+            onActivate: () => renderTravelTab()
         },
         {
             label: 'Info',
@@ -67,7 +67,7 @@ export function showMainMenu() {
         {
             label: 'Shipyard',
             content: getShipyardContent(),
-            onActivate: renderShipyardTable
+            onActivate: () => renderShipyardTable()
         },
         {
             label: 'Market',
@@ -79,10 +79,17 @@ export function showMainMenu() {
     const container = document.getElementById('game-container');
     container.innerHTML = '';
     
+    // Create shared button container
+    const buttonContainer = ce({
+        id: 'tab-buttons',
+        className: 'button-container'
+    });
+    
     const menu = ce({
         className: 'menu',
         children: [
-            createTabs(tabs)
+            createTabs(tabs),
+            buttonContainer
         ]
     });
     

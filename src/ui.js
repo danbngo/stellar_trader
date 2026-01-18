@@ -220,7 +220,7 @@ export function createTabs(tabs) {
     const tabContents = tabs.map((tab, index) => 
         ce({
             className: index === 0 ? 'tab-content active' : 'tab-content',
-            html: tab.content,
+            ...(typeof tab.content === 'string' ? { html: tab.content } : { children: [tab.content] }),
             attrs: { 'data-tab-index': index }
         })
     );
@@ -250,6 +250,12 @@ export function createTabs(tabs) {
 function switchTab(button) {
     const index = button.getAttribute('data-tab-index');
     const container = button.closest('.tabs-container');
+    
+    // Clear button container when switching tabs
+    const buttonContainer = document.getElementById('tab-buttons');
+    if (buttonContainer) {
+        buttonContainer.innerHTML = '';
+    }
     
     container.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');

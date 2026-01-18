@@ -37,14 +37,13 @@ export function getMarketContent(system) {
             <div class="column" id="market-left"></div>
             <div class="column" id="market-right"></div>
         </div>
-        <div id="market-buttons" class="button-container"></div>
     `;
 }
 
 export function renderMarketTable(system) {
     const leftCol = document.getElementById('market-left');
     const rightCol = document.getElementById('market-right');
-    const buttonsDiv = document.getElementById('market-buttons');
+    const buttonsDiv = document.getElementById('tab-buttons');
     if (!leftCol || !rightCol || !buttonsDiv) return;
     
     leftCol.innerHTML = '';

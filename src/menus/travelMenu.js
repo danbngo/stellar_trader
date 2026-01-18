@@ -14,7 +14,6 @@ export function getTravelContent() {
             </div>
             <div id="destination-info"></div>
         </div>
-        <div id="travel-buttons" class="button-container"></div>
     `;
     
     return createTwoColumnLayout({ leftColumn, rightColumn });
@@ -111,7 +110,7 @@ function updateTravelMap() {
         const isSelected = window.selectedDestination && window.selectedDestination.index === index;
         const distance = calculateDistance(currentSystem, system);
         
-        const fuelNeeded = Math.ceil(distance / 2.5);
+        const fuelNeeded = Math.ceil(distance / .25);
         const canReach = window.gameState.ship.fuel >= fuelNeeded;
         
         // Calculate relative position to center
@@ -265,7 +264,7 @@ function updateDestinationInfo() {
 }
 
 function renderTravelButtons() {
-    const buttonsDiv = document.getElementById('travel-buttons');
+    const buttonsDiv = document.getElementById('tab-buttons');
     if (!buttonsDiv) return;
     
     buttonsDiv.innerHTML = '';

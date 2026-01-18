@@ -9,14 +9,6 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         clean: false
     },
-    plugins: [
-        new CopyPlugin({
-            patterns: [
-                { from: 'index.html', to: 'index.html' },
-                { from: 'index.css', to: 'index.css' }
-            ],
-        }),
-    ],
     devtool: 'source-map',
     devServer: {
         static: {

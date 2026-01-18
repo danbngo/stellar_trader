@@ -6,8 +6,6 @@ export function showOptionsModal() {
         className: 'menu-content',
         style: { textAlign: 'center', padding: '20px' },
         children: [
-            ce({ tag: 'h2', style: { color: '#0bf', marginBottom: '20px' }, text: 'OPTIONS' }),
-            ce({ tag: 'p', style: { marginBottom: '30px' }, text: 'Game settings and controls' }),
             createButton({
                 text: 'Return to Title Screen',
                 action: () => {
