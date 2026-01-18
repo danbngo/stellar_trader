@@ -109,6 +109,7 @@ function updateTravelMap() {
         
         const isCurrent = index === window.gameState.currentSystemIndex;
         const isVisited = window.gameState.visitedStarSystems.has(system);
+        const isSelected = window.selectedDestination && window.selectedDestination.index === index;
         const distance = calculateDistance(currentSystem, system);
         
         const fuelNeeded = Math.ceil(distance / 2.5);
@@ -126,6 +127,8 @@ function updateTravelMap() {
         let systemClass = 'travel-system';
         if (isCurrent) {
             systemClass += ' current';
+        } else if (isSelected) {
+            systemClass += ' selected';
         } else if (isVisited) {
             systemClass += ' visited';
         } else {

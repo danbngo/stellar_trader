@@ -1,4 +1,4 @@
-# Stellar Trader - Modular Code Structure
+# Void Merchant - Modular Code Structure
 
 ## Overview
 The game has been refactored from a single 1985-line `main.js` file into a clean, organized modular structure using ES6 modules.
@@ -6,7 +6,7 @@ The game has been refactored from a single 1985-line `main.js` file into a clean
 ## File Structure
 
 ```
-stellar trader/
+void merchant/
 ├── index.html                          # Entry HTML with module script tag
 ├── index.css                          # Blue theme styles  
 ├── main.js                            # Entry point (imports titleMenu)

@@ -1,4 +1,4 @@
-# Stellar Trader - Build Instructions
+# Void Merchant - Build Instructions
 
 ## Development Setup
 
@@ -33,7 +33,7 @@ Starts webpack-dev-server at http://localhost:8080 with hot module replacement.
 ## Project Structure
 
 ```
-stellar trader/
+void merchant/
 ├── index.html              # Main HTML (loads dist/bundle.js)
 ├── index.css              # Styles
 ├── main.js                # Entry point
