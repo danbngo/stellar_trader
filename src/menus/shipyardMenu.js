@@ -5,7 +5,6 @@ import { SCOUT, FREIGHTER, DESTROYER } from '../defs/SHIP_TYPES.js';
 
 export function getShipyardContent() {
     return `
-        <h3 style="color: #0bf; margin-bottom: 15px;">SHIPYARD SERVICES</h3>
         <div id="shipyard-content" class="two-column-layout">
             <div class="column" id="shipyard-left"></div>
             <div class="column" id="shipyard-right"></div>

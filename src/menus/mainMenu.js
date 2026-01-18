@@ -92,7 +92,6 @@ export function showMainMenu() {
 
 function getSystemInfoContent(system) {
     const leftColumn = `
-        <h3 style="color: #0bf; margin-bottom: 15px;">SYSTEM INFORMATION</h3>
         <div class="stats-group">
             <div class="stat-line">
                 <span class="stat-label">System Name:</span>

@@ -26,7 +26,6 @@ export function showComputerScreen() {
 function getCaptainInfoContent() {
     return `
         <div class="stats-group">
-            <h3 style="color: #0bf; margin-bottom: 15px;">CAPTAIN PROFILE</h3>
             <div class="stat-line">
                 <span class="stat-label">Name:</span>
                 <span class="stat-value">${window.gameState.captain.name}</span>
@@ -54,7 +53,6 @@ function getCaptainInfoContent() {
 function getSkillsContent() {
     return `
         <div class="stats-group">
-            <h3 style="color: #0bf; margin-bottom: 15px;">SKILLS</h3>
             <p style="margin-bottom: 15px;">Skill Points Available: <span id="skill-points-display">${window.gameState.captain.skillPoints}</span></p>
             <div id="skills-table-container"></div>
             <div id="skills-buttons" class="button-container" style="margin-top: 15px;"></div>
@@ -133,7 +131,6 @@ function getShipStatusContent() {
     
     return `
         <div class="stats-group">
-            <h3 style="color: #0bf; margin-bottom: 15px;">SHIP STATUS</h3>
             <div class="stat-line">
                 <span class="stat-label">Ship Name:</span>
                 <span class="stat-value">${window.gameState.ship.name}</span>

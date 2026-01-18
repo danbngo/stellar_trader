@@ -6,7 +6,6 @@ import { showTravelEncounterMenu } from './travelEncounterMenu.js';
 
 export function getTravelContent() {
     return `
-        <h3 style="color: #0bf; margin-bottom: 15px; text-align: center;">STAR NAVIGATION</h3>
         <div id="travel-map-container"></div>
         <div class="stats-group" style="margin-top: 15px;">
             <div class="stat-line">

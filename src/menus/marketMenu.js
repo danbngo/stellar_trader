@@ -23,7 +23,6 @@ function getSellPrice(basePrice, system) {
 
 export function getMarketContent(system) {
     return `
-        <h3 style="color: #0bf; margin-bottom: 15px;">COMMODITY MARKET</h3>
         <div class="stats-group" style="margin-bottom: 15px;">
             <div class="stat-line">
                 <span class="stat-label">Cargo Space:</span>
