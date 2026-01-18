@@ -219,15 +219,18 @@ function renderEncounterContent() {
     // Encounter ship rows
     const encounterRows = [activeEncounter].map(ship => {
         let detailsDisplay = '';
+        const encounterTypeName = ship.encounterType ? ship.encounterType.name : ship.type;
         
-        if (ship.type === 'Pirate' || ship.type === 'Police') {
-            detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields} | Weapons: ${ship.weapons} | Threat: ${ship.threat}`;
-        } else if (ship.type === 'Merchant') {
-            detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields}`;
+        detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields} | Weapons: ${ship.weapons}`;
+        
+        // Add cargo for merchants
+        if (ship.encounterType && ship.encounterType.name === 'Merchant') {
+            const totalCargo = ship.getTotalCargo();
+            detailsDisplay += ` | Cargo: ${totalCargo}/${ship.maxCargo}`;
         }
         
         return {
-            cells: [ship.name, ship.type, detailsDisplay],
+            cells: [ship.name, encounterTypeName, detailsDisplay],
             data: ship
         };
     });
@@ -364,6 +367,14 @@ function resolveEncounter() {
     
     activeEncounter = null;
     renderEncounterContent();
+    
+    // Switch back to journey tab first
+    const journeyTab = document.querySelector('.tab-button[data-tab="journey"]');
+    if (journeyTab) {
+        journeyTab.click();
+    }
+    
+    // Render journey content after switching tabs
     renderJourneyContent();
     
     // Check quests after encounter
@@ -374,10 +385,6 @@ function resolveEncounter() {
         isPaused = false;
         startTravelInterval();
     }
-    
-    // Switch back to journey tab
-    const journeyTab = document.querySelector('.tab-button[data-tab="journey"]');
-    if (journeyTab) journeyTab.click();
 }
 
 function startTravelInterval() {
@@ -429,7 +436,16 @@ function triggerEncounter() {
     
     // Switch to encounter tab
     const encounterTab = document.querySelector('.tab-button[data-tab="encounter"]');
-    if (encounterTab) encounterTab.click();
+    if (encounterTab) {
+        encounterTab.click();
+        
+        // Call onGreet after switching to encounter tab
+        setTimeout(() => {
+            if (activeEncounter && activeEncounter.encounterType && activeEncounter.encounterType.onGreet) {
+                activeEncounter.encounterType.onGreet(activeEncounter, window.gameState.ship);
+            }
+        }, 100);
+    }
 }
 
 function completeJourney() {

@@ -438,7 +438,7 @@ export function createTopButtons(callbacks = {}) {
     
     // Determine system button icon and callback based on active journey
     const hasActiveJourney = window.gameState?.activeJourney;
-    const systemIcon = hasActiveJourney ? '⭐' : '🏙️'; // Star when traveling, city when docked
+    const systemIcon = hasActiveJourney ? '⭐' : '🏢'; // Star when traveling, city when docked
     const systemCallback = hasActiveJourney 
         ? () => import('./menus/travelEncounterMenu.js').then(m => m.showTravelEncounterMenu())
         : callbacks.showSystem;
@@ -498,7 +498,7 @@ export function createTopButtons(callbacks = {}) {
  * Switch between system, fleet, captain, journal, assistant, and options views
  */
 function switchViewMode(mode, callbacks) {
-    if (window.currentViewMode === mode) return; // Already in this mode
+    const wasAlreadyInMode = window.currentViewMode === mode;
     
     window.currentViewMode = mode;
     
@@ -507,7 +507,7 @@ function switchViewMode(mode, callbacks) {
         btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
     });
     
-    // Call the appropriate callback
+    // Call the appropriate callback (even if already in this mode, to allow refresh/navigation)
     if (mode === 'system' && callbacks.showSystem) {
         callbacks.showSystem();
     } else if (mode === 'fleet' && callbacks.showFleet) {

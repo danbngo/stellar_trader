@@ -1,8 +1,9 @@
 import { ce, createButton, createTwoColumnLayout, createDataTable, statColorSpan } from '../ui.js';
 import { calculateDistance } from '../utils.js';
 import { showMainMenu } from './mainMenu.js';
-import { generatePirateShip, generatePoliceShip, generateMerchantShip } from '../generators/shipGenerators.js';
+import { generateShip } from '../generators/shipGenerators.js';
 import { showTravelEncounterMenu } from './travelEncounterMenu.js';
+import { PIRATE_ENCOUNTER, MERCHANT_ENCOUNTER, POLICE_ENCOUNTER } from '../defs/ENCOUNTER_TYPES.js';
 
 let mapZoom = 1.0; // Current zoom level (0.5 to 2.0)
 
@@ -399,17 +400,34 @@ function travelToSystem(index) {
         for (let i = 0; i < encounterChecks; i++) {
             // Chance for pirate encounter based on piracy level (piracyLevel/5 = multiplier)
             if (Math.random() * 20 < avgPiracy) {
-                encounters.push(generatePirateShip());
+                const pirateShipType = PIRATE_ENCOUNTER.shipTypes[Math.floor(Math.random() * PIRATE_ENCOUNTER.shipTypes.length)];
+                const pirateShip = generateShip(pirateShipType);
+                pirateShip.encounterType = PIRATE_ENCOUNTER;
+                encounters.push(pirateShip);
             }
             
             // Chance for police encounter based on police level
             if (Math.random() * 20 < avgPolice) {
-                encounters.push(generatePoliceShip());
+                const policeShipType = POLICE_ENCOUNTER.shipTypes[Math.floor(Math.random() * POLICE_ENCOUNTER.shipTypes.length)];
+                const policeShip = generateShip(policeShipType);
+                policeShip.encounterType = POLICE_ENCOUNTER;
+                encounters.push(policeShip);
             }
             
             // Chance for merchant encounter based on merchants level
             if (Math.random() * 20 < avgMerchants) {
-                encounters.push(generateMerchantShip());
+                const merchantShipType = MERCHANT_ENCOUNTER.shipTypes[Math.floor(Math.random() * MERCHANT_ENCOUNTER.shipTypes.length)];
+                const merchantShip = generateShip(merchantShipType);
+                merchantShip.encounterType = MERCHANT_ENCOUNTER;
+                // Add cargo to merchant ships
+                const goods = ['food', 'water', 'air'];
+                goods.forEach(good => {
+                    const amount = Math.floor(Math.random() * 50);
+                    if (amount > 0) {
+                        merchantShip.addCargo(good, amount);
+                    }
+                });
+                encounters.push(merchantShip);
             }
         }
         
