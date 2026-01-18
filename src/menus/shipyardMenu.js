@@ -1,7 +1,9 @@
-import { ce, createDataTable, createButton } from '../ui.js';
+import { ce, createDataTable, createButton, statColorSpan } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 import { generateShip } from '../generators/shipGenerators.js';
 import { SCOUT, FREIGHTER, DESTROYER } from '../defs/SHIP_TYPES.js';
+
+let shipyardMode = 'buy'; // 'buy' or 'sell'
 
 export function getShipyardContent() {
     return `
@@ -20,91 +22,127 @@ export function renderShipyardTable() {
     
     leftCol.innerHTML = '';
     rightCol.innerHTML = '';
-    buttonsDiv.innerHTML = '';
     
-    const yourShipsSection = ce({
-        className: 'stats-group',
-        style: { marginTop: '20px' },
-        children: [
-            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Ships' })
-        ]
-    });
+    const fees = window.gameState.currentSystem?.fees || 1.0;
     
-    const yourShipsTable = createDataTable({
-        id: 'your-ships',
-        scrollable: true,
-        headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Status'],
-        rows: window.gameState.ownedShips.map((ship, idx) => ({
-            cells: [
-                ship.name, 
-                ship.type, 
-                `${ship.hull}/${ship.maxHull}`,
-                `${ship.shields}/${ship.maxShields}`,
-                `${ship.speed.toFixed(1)}x`,
-                ship === window.gameState.ship ? '<span style="color: #0bf;">ACTIVE</span>' : `${ship.value} cr`
-            ],
-            data: { ship, index: idx }
-        })),
-        onSelect: (rowData) => {
-            window.selectedOwnedShip = rowData.data;
-            window.selectedShipToBuy = null;
-            renderShipyardButtons();
-        }
-    });
-    
-    yourShipsSection.appendChild(yourShipsTable);
-    leftCol.appendChild(yourShipsSection);
-    
+    // Generate ships for sale once
     const shipsForSale = [
         generateShip(SCOUT, false),
         generateShip(FREIGHTER, false),
         generateShip(DESTROYER, false)
     ];
     
-    const shipsSection = ce({
-        className: 'stats-group',
-        style: { marginTop: '20px' },
-        children: [
-            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Ships for Sale' })
-        ]
-    });
-    
-    const shipsTable = createDataTable({
-        id: 'ships-for-sale',
-        scrollable: true,
-        headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Price'],
-        rows: shipsForSale.map((ship, idx) => ({
-            cells: [ship.name, ship.type, ship.maxHull, ship.maxShields, `${ship.speed.toFixed(1)}x`, `${ship.value} cr`],
-            data: { ship, index: idx }
-        })),
-        onSelect: (rowData) => {
-            window.selectedShipToBuy = rowData.data;
-            window.selectedOwnedShip = null;
-            renderShipyardButtons();
-        }
-    });
-    
-    shipsSection.appendChild(shipsTable);
-    rightCol.appendChild(shipsSection);
+    if (shipyardMode === 'sell') {
+        // Show player's ships (for selling)
+        const yourShipsSection = ce({
+            className: 'stats-group',
+            style: { marginTop: '20px' },
+            children: [
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Ships' })
+            ]
+        });
+        
+        const yourShipsTable = createDataTable({
+            id: 'your-ships',
+            scrollable: true,
+            headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Status'],
+            rows: window.gameState.ownedShips.map((ship, idx) => ({
+                cells: [
+                    ship.name, 
+                    ship.type, 
+                    `${ship.hull}/${ship.maxHull}`,
+                    `${ship.shields}/${ship.maxShields}`,
+                    `${ship.speed.toFixed(1)}x`,
+                    ship.weapons,
+                    ship === window.gameState.ship ? '<span style="color: #0bf;">ACTIVE</span>' : `${ship.value} cr`
+                ],
+                data: { ship, index: idx }
+            })),
+            onSelect: (rowData) => {
+                window.selectedOwnedShip = rowData.data;
+                window.selectedShipToBuy = null;
+                renderShipyardButtons();
+            }
+        });
+        
+        yourShipsSection.appendChild(yourShipsTable);
+        leftCol.appendChild(yourShipsSection);
+    } else {
+        // Show ships for sale (for buying)
+        const shipsSection = ce({
+            className: 'stats-group',
+            style: { marginTop: '20px' },
+            children: [
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Ships for Sale' })
+            ]
+        });
+        
+        const shipsTable = createDataTable({
+            id: 'ships-for-sale',
+            scrollable: true,
+            headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Price'],
+            rows: shipsForSale.map((ship, idx) => {
+                const basePrice = ship.value;
+                const effectivePrice = Math.round(basePrice * fees);
+                const ratio = effectivePrice / basePrice;
+                const priceText = statColorSpan(`${effectivePrice} cr`, ratio);
+                
+                return {
+                    cells: [
+                        ship.name, 
+                        ship.type, 
+                        ship.maxHull, 
+                        ship.maxShields, 
+                        `${ship.speed.toFixed(1)}x`,
+                        ship.weapons,
+                        priceText
+                    ],
+                    data: { ship, index: idx, effectivePrice }
+                };
+            }),
+            onSelect: (rowData) => {
+                window.selectedShipToBuy = rowData.data;
+                window.selectedOwnedShip = null;
+                renderShipyardButtons();
+            }
+        });
+        
+        shipsSection.appendChild(shipsTable);
+        leftCol.appendChild(shipsSection);
+    }
     
     renderShipyardButtons();
 }
 
 function renderShipyardButtons() {
-    const buttonsDiv = document.getElementById('shipyard-buttons');
+    const buttonsDiv = window.currentMenu?.getButtonContainer();
     if (!buttonsDiv) return;
     
+    // Clear buttons but we'll rebuild including toggle
     buttonsDiv.innerHTML = '';
     
+    // Add toggle button first
+    const toggleBtn = createButton({
+        id: 'shipyard-mode-toggle',
+        text: shipyardMode === 'buy' ? 'Show Your Ships' : 'Show Ships for Sale',
+        action: () => {
+            shipyardMode = shipyardMode === 'buy' ? 'sell' : 'buy';
+            window.selectedOwnedShip = null;
+            window.selectedShipToBuy = null;
+            renderShipyardTable();
+        }
+    });
+    buttonsDiv.appendChild(toggleBtn);
+    
     if (window.selectedShipToBuy) {
-        const { ship } = window.selectedShipToBuy;
-        const canAfford = window.gameState.captain.credits >= ship.value;
+        const { ship, effectivePrice } = window.selectedShipToBuy;
+        const canAfford = window.gameState.captain.credits >= effectivePrice;
         
         buttonsDiv.appendChild(createButton({
-            text: `Purchase Ship (${ship.value} cr)`,
+            text: `Purchase Ship (${effectivePrice} cr)`,
             action: () => buyShip(window.selectedShipToBuy.index),
             disabled: !canAfford,
-            disabledReason: canAfford ? '' : `Need ${ship.value} credits (have ${window.gameState.captain.credits})`
+            disabledReason: canAfford ? '' : `Need ${effectivePrice} credits (have ${window.gameState.captain.credits})`
         }));
     }
     
@@ -165,9 +203,12 @@ function buyShip(index) {
     ];
     
     const newShip = shipsForSale[index];
+    const fees = window.gameState.currentSystem?.fees || 1.0;
+    const effectivePrice = Math.round(newShip.value * fees);
     
-    if (window.gameState.spendCredits(newShip.value)) {
+    if (window.gameState.spendCredits(effectivePrice)) {
         window.gameState.ownedShips.push(newShip);
+        window.selectedShipToBuy = null;
         renderShipyardTable();
     }
 }
