@@ -105,7 +105,7 @@ function renderJourneyContent() {
         leftColumn: ce({
             className: 'stats-group',
             children: [
-                ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Travel Progress' }),
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Travel Progress' }),
                 ce({
                     className: 'stat-line',
                     children: [
@@ -143,7 +143,7 @@ function renderJourneyContent() {
         rightColumn: ce({
             className: 'stats-group',
             children: [
-                ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Region Statistics' }),
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Region Statistics' }),
                 ce({
                     className: 'stat-line',
                     children: [
@@ -220,7 +220,7 @@ function renderEncounterContent() {
     const layout = createTwoColumnLayout({
         leftColumn: ce({
             children: [
-                ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Your Ships' }),
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Ships' }),
                 createDataTable({
                     id: 'player-ships-encounter',
                     scrollable: true,
@@ -232,7 +232,7 @@ function renderEncounterContent() {
         }),
         rightColumn: ce({
             children: [
-                ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Encountered Ship' }),
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Encountered Ship' }),
                 createDataTable({
                     id: 'encountered-ships-active',
                     scrollable: true,

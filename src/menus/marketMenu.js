@@ -55,7 +55,7 @@ export function renderMarketTable(system) {
     const marketSection = ce({
         className: 'stats-group',
         children: [
-            ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Market Prices' })
+            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Market Prices' })
         ]
     });
     
@@ -92,7 +92,7 @@ export function renderMarketTable(system) {
     const cargoSection = ce({
         className: 'stats-group',
         children: [
-            ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Your Cargo' })
+            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Cargo' })
         ]
     });
     

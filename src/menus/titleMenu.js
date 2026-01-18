@@ -1,4 +1,4 @@
-import { showMenu, createButton, createDataTable, ce, createTwoColumnLayout } from '../ui.js';
+import { showMenu, Menu, createButton, createDataTable, ce, createTwoColumnLayout } from '../ui.js';
 import { GameState } from '../classes/GameState.js';
 import { showMainMenu } from './mainMenu.js';
 import { SKILLS, SKILL_NAMES, MAX_SKILL_LEVEL } from '../defs/SKILLS.js';
@@ -100,13 +100,18 @@ function showCharacterCreation() {
     
     const layout = createTwoColumnLayout({ leftColumn, rightColumn });
     
-    showMenu({
-        title: 'CHARACTER CREATION',
-        content: layout.outerHTML,
-        buttons: []
+    const menu = new Menu({
+        tabs: [
+            {
+                label: 'Character Creation',
+                content: layout.outerHTML,
+                onActivate: () => renderSkillSelectionTable()
+            }
+        ]
     });
     
-    renderSkillSelectionTable();
+    menu.render();
+    window.currentMenu = menu;
 }
 
 function renderSkillSelectionTable() {
@@ -138,28 +143,20 @@ function renderSkillSelectionTable() {
     });
     
     container.appendChild(skillTable);
-    
-    const buttonsDiv = ce({ 
-        id: 'skill-selection-buttons',
-        className: 'button-container',
-        style: { marginTop: '15px' }
-    });
-    container.appendChild(buttonsDiv);
-    
     renderSkillButtons();
 }
 
 function renderSkillButtons() {
-    const buttonsDiv = document.getElementById('skill-selection-buttons');
-    if (!buttonsDiv) return;
+    const buttonContainer = window.currentMenu?.getButtonContainer();
+    if (!buttonContainer) return;
     
-    buttonsDiv.innerHTML = '';
+    buttonContainer.innerHTML = '';
     
     if (window.selectedSkill) {
         const currentLevel = window.gameState.captain.skills[window.selectedSkill];
         const canIncrease = window.gameState.captain.skillPoints > 0 && currentLevel < MAX_SKILL_LEVEL;
         
-        buttonsDiv.appendChild(createButton({
+        buttonContainer.appendChild(createButton({
             text: 'Increase',
             action: () => {
                 if (window.gameState.captain.increaseSkill(window.selectedSkill)) {
@@ -179,7 +176,7 @@ function renderSkillButtons() {
     }
     
     // Add Begin Journey and Back buttons
-    buttonsDiv.appendChild(createButton({
+    buttonContainer.appendChild(createButton({
         text: 'Begin Journey',
         action: () => {
             // Save the captain name before starting
@@ -191,7 +188,7 @@ function renderSkillButtons() {
         }
     }));
     
-    buttonsDiv.appendChild(createButton({
+    buttonContainer.appendChild(createButton({
         text: 'Back',
         action: () => showTitleScreen()
     }));

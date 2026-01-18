@@ -2,7 +2,7 @@
 .stats-group {
     margin: 1rem 0;
     padding: 0.75rem;
-    border: 1px solid #09f;
+    border: 1px solid rgb(0, 255, 255);
     border-radius: 0.25rem;
 }
 
@@ -14,10 +14,8 @@
 }
 
 .stat-label {
-    color: #0bf;
 }
 
 .stat-value {
-    color: #09f;
     font-weight: bold;
 }

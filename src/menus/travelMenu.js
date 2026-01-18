@@ -29,10 +29,6 @@ export function renderTravelTab() {
         className: 'travel-map',
         children: [
             ce({
-                className: 'travel-map-title',
-                text: 'GALAXY MAP'
-            }),
-            ce({
                 className: 'travel-map-canvas',
                 id: 'travel-map-canvas',
                 children: [
@@ -110,7 +106,7 @@ function updateTravelMap() {
         const isSelected = window.selectedDestination && window.selectedDestination.index === index;
         const distance = calculateDistance(currentSystem, system);
         
-        const fuelNeeded = Math.ceil(distance / .25);
+        const fuelNeeded = Math.ceil(distance * 10);
         const canReach = window.gameState.ship.fuel >= fuelNeeded;
         
         // Calculate relative position to center

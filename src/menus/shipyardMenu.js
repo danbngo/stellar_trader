@@ -26,7 +26,7 @@ export function renderShipyardTable() {
         className: 'stats-group',
         style: { marginTop: '20px' },
         children: [
-            ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Your Ships' })
+            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Ships' })
         ]
     });
     
@@ -65,7 +65,7 @@ export function renderShipyardTable() {
         className: 'stats-group',
         style: { marginTop: '20px' },
         children: [
-            ce({ tag: 'h4', style: { color: '#0bf', marginBottom: '10px' }, text: 'Ships for Sale' })
+            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Ships for Sale' })
         ]
     });
     

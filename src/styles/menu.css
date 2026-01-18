@@ -1,12 +1,12 @@
 /* Menu System */
 .menu {
     background: rgba(0, 20, 40, 0.9);
-    border: 2px solid #09f;
+    border: 2px solid rgb(0, 255, 255);
     border-radius: 0.5rem;
     max-width: 95vw;
     width: 95vw;
     max-height: 80vh;
-    box-shadow: 0 0 1.25rem rgba(0, 153, 255, 0.3);
+    box-shadow: 0 0 1.25rem rgba(0, 255, 255, 0.3);
     margin-top: 2.5rem;
     display: flex;
     flex-direction: column;
@@ -16,7 +16,7 @@
 /* Menu Tabs Header - Fixed at top */
 .menu-tabs-header {
     display: flex;
-    border-bottom: 2px solid #09f;
+    border-bottom: 2px solid rgb(0, 255, 255);
     background: rgba(0, 20, 40, 0.95);
     flex-shrink: 0;
 }
@@ -43,7 +43,7 @@
     gap: 0.75rem;
     flex-wrap: wrap;
     padding: 1rem;
-    border-top: 2px solid #09f;
+    border-top: 2px solid rgb(0, 255, 255);
     background: rgba(0, 20, 40, 0.95);
     flex-shrink: 0;
 }
@@ -52,8 +52,7 @@
 .menu-title {
     text-align: center;
     margin-bottom: 1.25rem;
-    color: #0bf;
-    text-shadow: 0 0 0.75rem rgba(0, 191, 255, 0.8);
+    text-shadow: 0 0 0.75rem rgba(0, 255, 255, 0.8);
     letter-spacing: 0.25rem;
 }
 
@@ -61,7 +60,6 @@
     font-size: 1.1em;
     line-height: 1.6;
     margin-bottom: 1.5rem;
-    color: #09f;
     text-align: center;
 }
 

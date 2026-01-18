@@ -10,9 +10,3 @@
 .column {
     min-width: 0;
 }
-
-@media (max-width: 75rem) {
-    .two-column-layout {
-        grid-template-columns: 1fr;
-    }
-}

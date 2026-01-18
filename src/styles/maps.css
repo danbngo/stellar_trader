@@ -6,19 +6,18 @@
     width: 12.5rem;
     height: 12.5rem;
     background: rgba(0, 10, 20, 0.9);
-    border: 2px solid #09f;
+    border: 2px solid rgb(0, 255, 255);
     border-radius: 0.25rem;
-    box-shadow: 0 0 1rem rgba(0, 153, 255, 0.3);
+    box-shadow: 0 0 1rem rgba(0, 255, 255, 0.3);
     z-index: 100;
 }
 
 .minimap-title {
     text-align: center;
     padding: 0.25rem;
-    background: rgba(0, 153, 255, 0.2);
-    border-bottom: 1px solid #09f;
+    background: rgba(0, 255, 255, 0.2);
+    border-bottom: 1px solid rgb(0, 255, 255);
     font-size: 0.9em;
-    color: #0bf;
     letter-spacing: 0.125rem;
 }
 
@@ -45,14 +44,13 @@
     display: flex;
     justify-content: space-around;
     padding: 0.25rem;
-    background: rgba(0, 153, 255, 0.1);
-    border-top: 1px solid #09f;
+    background: rgba(0, 255, 255, 0.1);
+    border-top: 1px solid rgb(0, 255, 255);
 }
 
 .minimap-arrow {
     background: transparent;
-    border: 1px solid #09f;
-    color: #09f;
+    border: 1px solid rgb(0, 255, 255);
     font-size: 0.9em;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
@@ -61,8 +59,8 @@
 }
 
 .minimap-arrow:hover {
-    background: rgba(0, 153, 255, 0.2);
-    box-shadow: 0 0 0.5rem rgba(0, 153, 255, 0.5);
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 0.5rem rgba(0, 255, 255, 0.5);
 }
 
 .minimap-system {
@@ -70,7 +68,7 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
-    background: #09f;
+    background: rgb(0, 255, 255);
     transform: translate(-50%, -50%);
     cursor: pointer;
     transition: all 0.2s;
@@ -80,11 +78,11 @@
 .minimap-system:hover {
     width: 0.5rem;
     height: 0.5rem;
-    box-shadow: 0 0 0.5rem rgba(0, 153, 255, 0.8);
+    box-shadow: 0 0 0.5rem rgba(0, 255, 255, 0.8);
 }
 
 .minimap-system.current {
-    background: #0bf;
+    background: rgb(0, 191, 255);
     width: 0.5rem;
     height: 0.5rem;
     box-shadow: 0 0 0.75rem rgba(0, 191, 255, 1);
@@ -99,7 +97,6 @@
 .minimap-system-label {
     position: absolute;
     font-size: 0.65em;
-    color: #09f;
     white-space: nowrap;
     pointer-events: none;
     text-shadow: 0 0 0.25rem #000, 1px 1px 2px #000;
@@ -111,9 +108,9 @@
     height: 28rem;
     margin: 0 auto;
     background: rgba(0, 10, 20, 0.9);
-    border: 2px solid #09f;
+    border: 2px solid rgb(0, 255, 255);
     border-radius: 0.25rem;
-    box-shadow: 0 0 1rem rgba(0, 153, 255, 0.3);
+    box-shadow: 0 0 1rem rgba(0, 255, 255, 0.3);
     position: relative;
 }
 
@@ -140,8 +137,7 @@
 
 .travel-map-arrow {
     background: transparent;
-    border: 1px solid #09f;
-    color: #09f;
+    border: 1px solid rgb(0, 255, 255);
     font-size: 0.9em;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
@@ -150,17 +146,16 @@
 }
 
 .travel-map-arrow:hover {
-    background: rgba(0, 153, 255, 0.2);
-    box-shadow: 0 0 0.5rem rgba(0, 153, 255, 0.5);
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 0.5rem rgba(0, 255, 255, 0.5);
 }
 
 .travel-map-title {
     text-align: center;
     padding: 0.25rem;
-    background: rgba(0, 153, 255, 0.2);
-    border-bottom: 1px solid #09f;
+    background: rgba(0, 255, 255, 0.2);
+    border-bottom: 1px solid rgb(0, 255, 255);
     font-size: 0.9em;
-    color: #0bf;
     letter-spacing: 0.125rem;
 }
 
@@ -169,7 +164,7 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
-    background: #09f;
+    background: rgb(0, 255, 255);
     transform: translate(-50%, -50%);
     cursor: pointer;
     transition: all 0.2s;
@@ -179,11 +174,11 @@
 .travel-system:hover {
     width: 0.75rem;
     height: 0.75rem;
-    box-shadow: 0 0 0.75rem rgba(0, 153, 255, 0.8);
+    box-shadow: 0 0 0.75rem rgba(0, 255, 255, 0.8);
 }
 
 .travel-system.current {
-    background: #0bf;
+    background: rgb(0, 191, 255);
     width: 0.75rem;
     height: 0.75rem;
     box-shadow: 0 0 0.75rem rgba(0, 191, 255, 1);
@@ -222,7 +217,6 @@
 .travel-system-label {
     position: absolute;
     font-size: 0.75em;
-    color: #09f;
     white-space: nowrap;
     pointer-events: none;
     text-shadow: 0 0 0.25rem #000, 1px 1px 2px #000;

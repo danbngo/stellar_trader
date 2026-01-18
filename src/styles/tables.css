@@ -12,17 +12,16 @@ table {
 .data-table th {
     padding: 0.5rem;
     background: rgba(0, 153, 255, 0.2);
-    border: 1px solid #09f;
+    border: 1px solid rgb(0,255,255);
     text-align: left;
-    color: #0bf;
+    color: rgb(0,255,255);
     font-weight: normal;
 }
 
 .data-table td {
     text-align: left;
     padding: 0.5rem;
-    border: 1px solid #09f;
-    color: #09f;
+    border: 1px solid rgb(0,255,255);
 }
 
 .data-table tbody tr {
@@ -31,15 +30,18 @@ table {
 }
 
 .data-table tbody tr:hover {
-    background: rgba(0, 153, 255, 0.1);
+    background: rgba(0, 255, 255, 0.1);
 }
 
 .data-table tbody tr.selected {
-    background: rgba(0, 191, 255, 0.2);
+    color: black;
+    background: rgba(0, 255, 255, 0.4);
 }
 
 .table-container {
+    background: #001;
+    margin-right: 1rem;
     max-height: 19rem;
-    border: 1px solid #09f;
+    border: 1px solid rgb(0,255,255);
     border-radius: 0.25rem;
 }
