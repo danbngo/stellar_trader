@@ -50,12 +50,13 @@ export function getCaptainStatus(captain) {
 }
 
 export function showMainMenu() {
-    window.currentViewMode = 'game';
+    window.currentViewMode = 'system';
     renderGameView();
     
     createTopButtons({
-        showGame: renderGameView,
-        showComputer: () => import('./computerMenu.js').then(m => m.showComputerMenu()),
+        showSystem: renderGameView,
+        showFleet: () => import('./computerMenu.js').then(m => m.showFleetMenu()),
+        showCaptain: () => import('./captainMenu.js').then(m => m.showCaptainMenu()),
         showOptions: () => import('./optionsMenu.js').then(m => m.showOptionsMenu())
     });
 }
@@ -71,7 +72,7 @@ function renderGameView() {
                 onActivate: () => renderTravelTab()
             },
             {
-                label: 'Info',
+                label: 'System Info',
                 content: getSystemInfoContent(currentSystem)
             },
             {
@@ -94,6 +95,9 @@ function renderGameView() {
 }
 
 function getSystemInfoContent(system) {
+    // Convert ratings to multiplier format (5 = 1x, 10 = 2x)
+    const toMultiplier = (value) => `${(value / 5).toFixed(1)}x`;
+    
     const leftColumn = `
         <div class="stats-group">
             <div class="stat-line">
@@ -101,20 +105,16 @@ function getSystemInfoContent(system) {
                 <span class="stat-value">${system.name}</span>
             </div>
             <div class="stat-line">
-                <span class="stat-label">Coordinates:</span>
-                <span class="stat-value">${system.x.toFixed(1)}, ${system.y.toFixed(1)}</span>
-            </div>
-            <div class="stat-line">
                 <span class="stat-label">Piracy Level:</span>
-                <span class="stat-value">${system.piracyLevel}/10</span>
+                <span class="stat-value">${toMultiplier(system.piracyLevel)}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Police Level:</span>
-                <span class="stat-value">${system.policeLevel}/10</span>
+                <span class="stat-value">${toMultiplier(system.policeLevel)}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Merchants Level:</span>
-                <span class="stat-value">${system.merchantsLevel}/10</span>
+                <span class="stat-value">${toMultiplier(system.merchantsLevel)}</span>
             </div>
         </div>
     `;

@@ -383,17 +383,24 @@ export function createTopButtons(callbacks = {}) {
         children: [
             ce({
                 tag: 'button',
-                className: window.currentViewMode === 'game' ? 'icon-button active' : 'icon-button',
-                html: '&#x1F680;&#xFE0E;', // Rocket/spaceship emoji
-                attrs: { title: 'Game', 'data-mode': 'game' },
-                onclick: () => switchViewMode('game', callbacks)
+                className: window.currentViewMode === 'system' ? 'icon-button active' : 'icon-button',
+                html: '&#x2B50;&#xFE0E;', // Star emoji
+                attrs: { title: 'System', 'data-mode': 'system' },
+                onclick: () => switchViewMode('system', callbacks)
             }),
             ce({
                 tag: 'button',
-                className: window.currentViewMode === 'computer' ? 'icon-button active' : 'icon-button',
-                html: '&#x1F4BB;&#xFE0E;', // Computer emoji with text variation selector for monochrome
-                attrs: { title: 'Computer', 'data-mode': 'computer' },
-                onclick: () => switchViewMode('computer', callbacks)
+                className: window.currentViewMode === 'fleet' ? 'icon-button active' : 'icon-button',
+                html: '&#x1F6F8;&#xFE0E;', // Flying saucer/ship emoji
+                attrs: { title: 'Fleet', 'data-mode': 'fleet' },
+                onclick: () => switchViewMode('fleet', callbacks)
+            }),
+            ce({
+                tag: 'button',
+                className: window.currentViewMode === 'captain' ? 'icon-button active' : 'icon-button',
+                html: '&#x1F464;&#xFE0E;', // Bust in silhouette/person emoji
+                attrs: { title: 'Captain', 'data-mode': 'captain' },
+                onclick: () => switchViewMode('captain', callbacks)
             }),
             ce({
                 tag: 'button',
@@ -409,7 +416,7 @@ export function createTopButtons(callbacks = {}) {
 }
 
 /**
- * Switch between game, computer, and options views
+ * Switch between system, fleet, captain, and options views
  */
 function switchViewMode(mode, callbacks) {
     if (window.currentViewMode === mode) return; // Already in this mode
@@ -422,10 +429,12 @@ function switchViewMode(mode, callbacks) {
     });
     
     // Call the appropriate callback
-    if (mode === 'game' && callbacks.showGame) {
-        callbacks.showGame();
-    } else if (mode === 'computer' && callbacks.showComputer) {
-        callbacks.showComputer();
+    if (mode === 'system' && callbacks.showSystem) {
+        callbacks.showSystem();
+    } else if (mode === 'fleet' && callbacks.showFleet) {
+        callbacks.showFleet();
+    } else if (mode === 'captain' && callbacks.showCaptain) {
+        callbacks.showCaptain();
     } else if (mode === 'options' && callbacks.showOptions) {
         callbacks.showOptions();
     }

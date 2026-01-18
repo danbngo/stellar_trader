@@ -233,7 +233,7 @@ function updateDestinationInfo() {
         const systemName = (isVisited || isSeen) ? system.name : 'Unknown System';
         
         infoDiv.innerHTML = `
-            <div class="stat-line" style="margin-top: 10px;">
+            <div class="stat-line">
                 <span class="stat-label">Destination:</span>
                 <span class="stat-value">${systemName}</span>
             </div>
@@ -243,7 +243,7 @@ function updateDestinationInfo() {
             </div>
             <div class="stat-line">
                 <span class="stat-label">Distance:</span>
-                <span class="stat-value">${distance.toFixed(1)} units</span>
+                <span class="stat-value">${distance.toFixed(1)} light years</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Fuel Cost:</span>
