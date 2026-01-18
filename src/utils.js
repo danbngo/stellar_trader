@@ -4,7 +4,12 @@
  * Create Element - Creates an HTML element with specified properties
  */
 export function ce(params = {}) {
-    const element = document.createElement(params.tag || 'div');
+    const tag = params.tag || 'div';
+    
+    // Use createElementNS for SVG elements
+    const element = (tag === 'svg' || tag === 'line' || tag === 'rect' || tag === 'circle' || tag === 'path' || tag === 'g')
+        ? document.createElementNS('http://www.w3.org/2000/svg', tag)
+        : document.createElement(tag);
     
     if (params.className) element.className = params.className;
     if (params.id) element.id = params.id;

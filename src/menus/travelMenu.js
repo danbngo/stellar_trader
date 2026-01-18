@@ -88,6 +88,13 @@ function updateTravelMap() {
     viewport.innerHTML = '';
     svg.innerHTML = '';
     
+    // Add invisible rect to prevent browser optimization bug with single SVG child
+    const invisibleRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    invisibleRect.setAttribute('width', '100%');
+    invisibleRect.setAttribute('height', '100%');
+    invisibleRect.setAttribute('fill', 'transparent');
+    svg.appendChild(invisibleRect);
+    
     const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
     const canvasRect = canvas.getBoundingClientRect();
     const centerX = canvasRect.width / 2;
@@ -164,18 +171,20 @@ function updateTravelMap() {
         console.log('Canvas rect:', canvas ? canvas.getBoundingClientRect() : 'No canvas');
         
         if (currentPos && destPos && svg) {
+            // Force SVG reflow to ensure browser recognizes it's live
+            svg.getBoundingClientRect();
+            
             // Set SVG viewBox to match canvas dimensions
             const canvasRect = canvas.getBoundingClientRect();
             svg.setAttribute('viewBox', `0 0 ${canvasRect.width} ${canvasRect.height}`);
             
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const strokeColor = window.selectedDestination.canReach ? '#0f0' : '#f00';
             line.setAttribute('x1', currentPos.left.toString());
             line.setAttribute('y1', currentPos.top.toString());
             line.setAttribute('x2', destPos.left.toString());
             line.setAttribute('y2', destPos.top.toString());
-            line.setAttribute('stroke', window.selectedDestination.canReach ? '#0f0' : '#f00');
-            line.setAttribute('stroke-width', '2');
-            line.setAttribute('stroke-dasharray', '5,5');
+            line.setAttribute('style', `stroke:${strokeColor};stroke-width:2;stroke-dasharray:5,5`);
             
             console.log('Line created:', line);
             console.log('Line attributes:', {
