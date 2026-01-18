@@ -384,28 +384,35 @@ export function createTopButtons(callbacks = {}) {
             ce({
                 tag: 'button',
                 className: window.currentViewMode === 'system' ? 'icon-button active' : 'icon-button',
-                html: '&#x2B50;&#xFE0E;', // Star emoji
+                html: '⭐', // Star emoji
                 attrs: { title: 'System', 'data-mode': 'system' },
                 onclick: () => switchViewMode('system', callbacks)
             }),
             ce({
                 tag: 'button',
                 className: window.currentViewMode === 'fleet' ? 'icon-button active' : 'icon-button',
-                html: '&#x1F6F8;&#xFE0E;', // Flying saucer/ship emoji
+                html: '🚀', // Flying saucer/ship emoji
                 attrs: { title: 'Fleet', 'data-mode': 'fleet' },
                 onclick: () => switchViewMode('fleet', callbacks)
             }),
             ce({
                 tag: 'button',
                 className: window.currentViewMode === 'captain' ? 'icon-button active' : 'icon-button',
-                html: '&#x1F464;&#xFE0E;', // Bust in silhouette/person emoji
+                html: '👤', // Bust in silhouette/person emoji
                 attrs: { title: 'Captain', 'data-mode': 'captain' },
                 onclick: () => switchViewMode('captain', callbacks)
             }),
             ce({
                 tag: 'button',
+                className: window.currentViewMode === 'assistant' ? 'icon-button active' : 'icon-button',
+                html: '💻', // Computer emoji
+                attrs: { title: 'Assistant', 'data-mode': 'assistant' },
+                onclick: () => switchViewMode('assistant', callbacks)
+            }),
+            ce({
+                tag: 'button',
                 className: window.currentViewMode === 'options' ? 'icon-button active' : 'icon-button',
-                html: '&#9881;&#xFE0E;', // Settings gear with text variation selector
+                html: '⚙️', // Settings gear emoji
                 attrs: { title: 'Options', 'data-mode': 'options' },
                 onclick: () => switchViewMode('options', callbacks)
             })
@@ -416,7 +423,7 @@ export function createTopButtons(callbacks = {}) {
 }
 
 /**
- * Switch between system, fleet, captain, and options views
+ * Switch between system, fleet, captain, assistant, and options views
  */
 function switchViewMode(mode, callbacks) {
     if (window.currentViewMode === mode) return; // Already in this mode
@@ -435,6 +442,8 @@ function switchViewMode(mode, callbacks) {
         callbacks.showFleet();
     } else if (mode === 'captain' && callbacks.showCaptain) {
         callbacks.showCaptain();
+    } else if (mode === 'assistant' && callbacks.showAssistant) {
+        callbacks.showAssistant();
     } else if (mode === 'options' && callbacks.showOptions) {
         callbacks.showOptions();
     }

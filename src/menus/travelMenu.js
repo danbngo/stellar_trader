@@ -104,10 +104,8 @@ function updateTravelMap() {
         const isVisited = window.gameState.visitedStarSystems.has(system);
         const isSeen = window.gameState.seenStarSystems.has(system);
         const isSelected = window.selectedDestination && window.selectedDestination.index === index;
-        const distance = calculateDistance(currentSystem, system);
         
-        const fuelNeeded = Math.ceil(distance * 10);
-        const canReach = window.gameState.ship.fuel >= fuelNeeded;
+        const { canReach, fuelNeeded, distance } = window.gameState.canReachSystem(system);
         
         // Calculate relative position to center
         const relativeX = (system.x - currentSystem.x) * 20;

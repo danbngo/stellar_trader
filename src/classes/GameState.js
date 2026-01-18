@@ -60,4 +60,20 @@ export class GameState {
     removeCargo(item, quantity) {
         return this.ship.removeCargo(item, quantity);
     }
+    
+    /**
+     * Check if a destination system can be reached with current fuel
+     * @param {Object} destinationSystem - The system to check
+     * @returns {Object} - { canReach: boolean, fuelNeeded: number, distance: number }
+     */
+    canReachSystem(destinationSystem) {
+        const currentSystem = this.starSystems[this.currentSystemIndex];
+        const dx = destinationSystem.x - currentSystem.x;
+        const dy = destinationSystem.y - currentSystem.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const fuelNeeded = Math.ceil(distance * 10);
+        const canReach = this.ship.fuel >= fuelNeeded;
+        
+        return { canReach, fuelNeeded, distance };
+    }
 }
