@@ -7,7 +7,7 @@
 .tabs-header {
     display: flex;
     border-bottom: 2px solid #09f;
-    margin-bottom: 0.9375rem;
+    margin-bottom: 1rem;
 }
 
 .tab-button {
@@ -17,11 +17,11 @@
     color: #09f;
     font-family: 'Courier New', monospace;
     font-size: 1em;
-    padding: 0.625rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
-    letter-spacing: 0.0625rem;
+    letter-spacing: 0.125rem;
 }
 
 .tab-button:hover {

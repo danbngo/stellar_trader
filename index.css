@@ -140,9 +140,10 @@ button,
 
 .stat-line {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     margin: 0.3125rem 0;
     font-size: 0.95em;
+    gap: 0.25rem;
 }
 
 .stat-label {

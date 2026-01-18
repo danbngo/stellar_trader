@@ -1,7 +1,7 @@
 /* Stats Display */
 .stats-group {
-    margin: 0.9375rem 0;
-    padding: 0.625rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
     border: 1px solid #09f;
     border-radius: 0.25rem;
 }
@@ -9,7 +9,7 @@
 .stat-line {
     display: flex;
     justify-content: space-between;
-    margin: 0.3125rem 0;
+    margin: 0.25rem 0;
     font-size: 0.95em;
 }
 
