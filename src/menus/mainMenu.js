@@ -1,4 +1,4 @@
-import { ce, Menu, createTwoColumnLayout, createTopButtons } from '../ui.js';
+import { ce, Menu, createTwoColumnLayout, createTopButtons, statColorSpan } from '../ui.js';
 import { getTravelContent, renderTravelTab } from './travelMenu.js';
 import { getShipyardContent, renderShipyardTable } from './shipyardMenu.js';
 import { getMarketContent, renderMarketTable } from './marketMenu.js';
@@ -97,8 +97,18 @@ function renderGameView() {
 }
 
 function getSystemInfoContent(system) {
-    // Convert ratings to multiplier format (5 = 1x, 10 = 2x)
-    const toMultiplier = (value) => `${(value / 5).toFixed(1)}x`;
+    // Convert ratings to multiplier format (value / 5 = multiplier, where 5 = 1x, 20 = 4x)
+    const toMultiplier = (value) => (value / 5).toFixed(1);
+    
+    const piracyMultiplier = parseFloat(toMultiplier(system.piracyLevel));
+    const policeMultiplier = parseFloat(toMultiplier(system.policeLevel));
+    const merchantsMultiplier = parseFloat(toMultiplier(system.merchantsLevel));
+    
+    // For piracy: higher is worse, so invert the ratio (4x piracy = 0.25 ratio = bad/red)
+    // For police/merchants: higher is better (4x = 4.0 ratio = good/green)
+    const piracyRatio = 1 / piracyMultiplier; // Inverted: 4x piracy becomes 0.25 ratio
+    const policeRatio = policeMultiplier; // Direct: 4x police becomes 4.0 ratio
+    const merchantsRatio = merchantsMultiplier; // Direct: 4x merchants becomes 4.0 ratio
     
     const leftColumn = `
         <div class="stats-group">
@@ -108,15 +118,15 @@ function getSystemInfoContent(system) {
             </div>
             <div class="stat-line">
                 <span class="stat-label">Piracy Level:</span>
-                <span class="stat-value">${toMultiplier(system.piracyLevel)}</span>
+                <span class="stat-value">${statColorSpan(piracyMultiplier.toFixed(1) + 'x', piracyRatio)}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Police Level:</span>
-                <span class="stat-value">${toMultiplier(system.policeLevel)}</span>
+                <span class="stat-value">${statColorSpan(policeMultiplier.toFixed(1) + 'x', policeRatio)}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Merchants Level:</span>
-                <span class="stat-value">${toMultiplier(system.merchantsLevel)}</span>
+                <span class="stat-value">${statColorSpan(merchantsMultiplier.toFixed(1) + 'x', merchantsRatio)}</span>
             </div>
         </div>
     `;

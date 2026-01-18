@@ -26,6 +26,9 @@ export class GameState {
         this.seenStarSystems = new Set();
         this.visitedStarSystems = new Set();
         
+        // Active journey state
+        this.activeJourney = null; // { destIndex, toSystem, tripDuration, fuelNeeded, currentDay, encounters, etc. }
+        
         // Mark starting system and its neighbors as seen
         const startSystem = this.starSystems[this.currentSystemIndex];
         this.visitedStarSystems.add(startSystem);

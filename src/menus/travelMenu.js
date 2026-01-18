@@ -281,7 +281,7 @@ function travelToSystem(index) {
     
     const { fuelNeeded, canReach, tripDuration } = window.selectedDestination;
     
-    if (canReach && window.gameState.useFuel(fuelNeeded)) {
+    if (canReach) {
         const fromSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
         const toSystem = window.gameState.starSystems[index];
         
@@ -304,21 +304,35 @@ function travelToSystem(index) {
         const encounterChecks = Math.max(1, Math.floor(tripDuration / 2));
         
         for (let i = 0; i < encounterChecks; i++) {
-            // Chance for pirate encounter based on piracy level
-            if (Math.random() * 10 < avgPiracy) {
+            // Chance for pirate encounter based on piracy level (piracyLevel/5 = multiplier)
+            if (Math.random() * 20 < avgPiracy) {
                 encounters.push(generatePirateShip());
             }
             
             // Chance for police encounter based on police level
-            if (Math.random() * 10 < avgPolice) {
+            if (Math.random() * 20 < avgPolice) {
                 encounters.push(generatePoliceShip());
             }
             
             // Chance for merchant encounter based on merchants level
-            if (Math.random() * 10 < avgMerchants) {
+            if (Math.random() * 20 < avgMerchants) {
                 encounters.push(generateMerchantShip());
             }
         }
+        
+        // Store journey in gameState (fuel not yet deducted)
+        window.gameState.activeJourney = {
+            destIndex: index,
+            toSystem,
+            tripDuration,
+            fuelNeeded,
+            currentDay: 0,
+            encounters,
+            avgPiracy,
+            avgPolice,
+            avgMerchants,
+            fuelDeducted: false
+        };
         
         // Show travel encounter menu
         showTravelEncounterMenu(index, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters);

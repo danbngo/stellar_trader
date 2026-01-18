@@ -1,4 +1,4 @@
-import { ce, createButton, createTwoColumnLayout, createDataTable, showMenu, showModal, createTabs } from '../ui.js';
+import { ce, createButton, createTwoColumnLayout, createDataTable, showMenu, showModal, createTabs, statColorSpan } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 
 // Travel state variables (module-level to share across functions)
@@ -15,12 +15,23 @@ let avgPolice = 0;
 let avgMerchants = 0;
 
 export function showTravelEncounterMenu(destIndex, destination, duration, piracy, police, merchants, allEncounters) {
-    // Reset state
-    currentDay = 0;
+    // Reset state or restore from activeJourney
+    const journey = window.gameState.activeJourney;
+    
+    if (journey && journey.destIndex === destIndex) {
+        // Restore existing journey state
+        currentDay = journey.currentDay || 0;
+        remainingEncounters = journey.remainingEncounters || [...allEncounters];
+        activeEncounter = journey.activeEncounter || null;
+    } else {
+        // Reset for new journey
+        currentDay = 0;
+        remainingEncounters = [...allEncounters];
+        activeEncounter = null;
+    }
+    
     isPaused = true;
     travelInterval = null;
-    activeEncounter = null;
-    remainingEncounters = [...allEncounters];
     destinationIndex = destIndex;
     toSystem = destination;
     tripDuration = duration;
@@ -148,21 +159,30 @@ function renderJourneyContent() {
                     className: 'stat-line',
                     children: [
                         ce({ className: 'stat-label', text: 'Piracy Level:' }),
-                        ce({ className: 'stat-value', text: avgPiracy.toFixed(1) + '/10' })
+                        ce({ 
+                            className: 'stat-value', 
+                            html: statColorSpan((avgPiracy / 5).toFixed(1) + 'x', 1 / (avgPiracy / 5))
+                        })
                     ]
                 }),
                 ce({
                     className: 'stat-line',
                     children: [
                         ce({ className: 'stat-label', text: 'Police Level:' }),
-                        ce({ className: 'stat-value', text: avgPolice.toFixed(1) + '/10' })
+                        ce({ 
+                            className: 'stat-value', 
+                            html: statColorSpan((avgPolice / 5).toFixed(1) + 'x', avgPolice / 5)
+                        })
                     ]
                 }),
                 ce({
                     className: 'stat-line',
                     children: [
                         ce({ className: 'stat-label', text: 'Merchants Level:' }),
-                        ce({ className: 'stat-value', text: avgMerchants.toFixed(1) + '/10' })
+                        ce({ 
+                            className: 'stat-value', 
+                            html: statColorSpan((avgMerchants / 5).toFixed(1) + 'x', avgMerchants / 5)
+                        })
                     ]
                 })
             ]
@@ -254,19 +274,35 @@ function renderJourneyButtons() {
     
     buttonsDiv.innerHTML = '';
     
-    if (isPaused) {
+    // If progress is still at 0%, show Start Journey and Cancel Journey
+    if (currentDay === 0) {
         buttonsDiv.appendChild(createButton({
-            text: 'Resume Journey',
-            action: resumeJourney,
+            text: 'Start Journey',
+            action: startJourney,
             disabled: activeEncounter !== null,
             disabledReason: activeEncounter ? 'Resolve encounter first' : ''
         }));
-    } else {
+        
         buttonsDiv.appendChild(createButton({
-            text: 'Pause Journey',
-            action: pauseJourney,
-            disabled: activeEncounter !== null
+            text: 'Cancel Journey',
+            action: cancelJourney
         }));
+    } else {
+        // Progress has started, only show Resume/Pause
+        if (isPaused) {
+            buttonsDiv.appendChild(createButton({
+                text: 'Resume Journey',
+                action: resumeJourney,
+                disabled: activeEncounter !== null,
+                disabledReason: activeEncounter ? 'Resolve encounter first' : ''
+            }));
+        } else {
+            buttonsDiv.appendChild(createButton({
+                text: 'Pause Journey',
+                action: pauseJourney,
+                disabled: activeEncounter !== null
+            }));
+        }
     }
 }
 
@@ -284,12 +320,39 @@ function renderEncounterButtons() {
     }
 }
 
+function startJourney() {
+    // Deduct fuel when starting journey
+    const journey = window.gameState.activeJourney;
+    if (journey && !journey.fuelDeducted) {
+        if (window.gameState.useFuel(journey.fuelNeeded)) {
+            journey.fuelDeducted = true;
+            isPaused = false;
+            startTravelInterval();
+            renderJourneyContent();
+        }
+    }
+}
+
+function cancelJourney() {
+    // Clear the active journey and return to main menu
+    window.gameState.activeJourney = null;
+    showMainMenu();
+}
+
 function pauseJourney() {
     isPaused = true;
     if (travelInterval) {
         clearInterval(travelInterval);
         travelInterval = null;
     }
+    
+    // Sync state to gameState.activeJourney
+    if (window.gameState.activeJourney) {
+        window.gameState.activeJourney.currentDay = currentDay;
+        window.gameState.activeJourney.remainingEncounters = remainingEncounters;
+        window.gameState.activeJourney.activeEncounter = activeEncounter;
+    }
+    
     renderJourneyContent();
 }
 

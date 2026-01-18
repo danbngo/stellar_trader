@@ -185,7 +185,17 @@ function renderSkillButtons() {
             if (nameInput && nameInput.value.trim()) {
                 window.gameState.captain.name = nameInput.value.trim();
             }
-            showMainMenu();
+            
+            // Check if there's an active journey
+            if (window.gameState.activeJourney) {
+                // Resume the active journey
+                const { destIndex, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters } = window.gameState.activeJourney;
+                import('./travelEncounterMenu.js').then(m => {
+                    m.showTravelEncounterMenu(destIndex, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters);
+                });
+            } else {
+                showMainMenu();
+            }
         }
     }));
     

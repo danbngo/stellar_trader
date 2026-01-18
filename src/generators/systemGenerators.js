@@ -65,9 +65,10 @@ export function generateStarSystems(count = 15) {
         const marketPrices = generateMarketPrices();
         const cargo = generateCargo();
         const fees = Math.random(); // 0-1, affects buy/sell prices
-        const piracyLevel = Math.floor(Math.random() * 10) + 1; // 1-10
-        const policeLevel = Math.floor(Math.random() * 10) + 1; // 1-10
-        const merchantsLevel = Math.floor(Math.random() * 10) + 1; // 1-10
+        // Random multiplier between 0.1x and 4x (stored as 0.5 to 20, where 5 = 1x)
+        const piracyLevel = 0.5 + Math.random() * 19.5; // 0.5-20 (0.1x-4x)
+        const policeLevel = 0.5 + Math.random() * 19.5; // 0.5-20 (0.1x-4x)
+        const merchantsLevel = 0.5 + Math.random() * 19.5; // 0.5-20 (0.1x-4x)
         
         systems.push(new StarSystem(
             name, 
