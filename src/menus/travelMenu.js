@@ -55,7 +55,11 @@ export function renderTravelTab() {
                     }),
                     ce({
                         className: 'travel-map-viewport',
-                        id: 'travel-map-viewport'
+                        id: 'travel-map-viewport',
+                        style: {
+                            position: 'relative',
+                            zIndex: '2'
+                        }
                     })
                 ]
             })
