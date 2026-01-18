@@ -1,25 +1,12 @@
 import { generateStarSystems } from '../generators/systemGenerators.js';
+import { Ship } from './Ship.js';
+import { Officer } from './Officer.js';
 
 export class GameState {
     constructor() {
-        this.captain = {
-            name: 'Captain',
-            credits: 1000,
-            reputation: 0
-        };
+        this.captain = new Officer('Captain');
         
-        this.ship = {
-            name: 'SS Wanderer',
-            type: 'Light Freighter',
-            hull: 100,
-            maxHull: 100,
-            fuel: 100,
-            maxFuel: 100,
-            cargo: {},
-            maxCargo: 50,
-            value: 5000,
-            weapons: 2
-        };
+        this.ship = new Ship('SS Wanderer', 'Light Freighter', 100, 100, 50, 2);
         
         this.ownedShips = [this.ship];
         
@@ -30,94 +17,34 @@ export class GameState {
     }
     
     damageShip(amount) {
-        this.ship.hull = Math.max(0, this.ship.hull - amount);
-        return this.ship.hull > 0;
+        return this.ship.damage(amount);
     }
     
     repairShip(amount) {
-        this.ship.hull = Math.min(this.ship.maxHull, this.ship.hull + amount);
+        this.ship.repair(amount);
     }
     
     useFuel(amount) {
-        if (this.ship.fuel >= amount) {
-            this.ship.fuel -= amount;
-            return true;
-        }
-        return false;
+        return this.ship.useFuel(amount);
     }
     
     addCredits(amount) {
-        this.captain.credits += amount;
+        this.captain.addCredits(amount);
     }
     
     spendCredits(amount) {
-        if (this.captain.credits >= amount) {
-            this.captain.credits -= amount;
-            return true;
-        }
-        return false;
+        return this.captain.spendCredits(amount);
     }
     
     getTotalCargo() {
-        return Object.values(this.ship.cargo).reduce((sum, qty) => sum + qty, 0);
+        return this.ship.getTotalCargo();
     }
     
     addCargo(item, quantity) {
-        if (this.getTotalCargo() + quantity <= this.ship.maxCargo) {
-            this.ship.cargo[item] = (this.ship.cargo[item] || 0) + quantity;
-            return true;
-        }
-        return false;
+        return this.ship.addCargo(item, quantity);
     }
     
     removeCargo(item, quantity) {
-        if ((this.ship.cargo[item] || 0) >= quantity) {
-            this.ship.cargo[item] -= quantity;
-            if (this.ship.cargo[item] === 0) delete this.ship.cargo[item];
-            return true;
-        }
-        return false;
-    }
-    
-    getShipStatus() {
-        return `
-            <div class="stats-group">
-                <div class="stat-line">
-                    <span class="stat-label">Ship:</span>
-                    <span class="stat-value">${this.ship.name}</span>
-                </div>
-                <div class="stat-line">
-                    <span class="stat-label">Hull:</span>
-                    <span class="stat-value">${this.ship.hull}/${this.ship.maxHull}</span>
-                </div>
-                <div class="stat-line">
-                    <span class="stat-label">Fuel:</span>
-                    <span class="stat-value">${this.ship.fuel}/${this.ship.maxFuel}</span>
-                </div>
-                <div class="stat-line">
-                    <span class="stat-label">Cargo:</span>
-                    <span class="stat-value">${this.getTotalCargo()}/${this.ship.maxCargo}</span>
-                </div>
-            </div>
-        `;
-    }
-    
-    getCaptainStatus() {
-        return `
-            <div class="stats-group">
-                <div class="stat-line">
-                    <span class="stat-label">Captain:</span>
-                    <span class="stat-value">${this.captain.name}</span>
-                </div>
-                <div class="stat-line">
-                    <span class="stat-label">Credits:</span>
-                    <span class="stat-value">${this.captain.credits}</span>
-                </div>
-                <div class="stat-line">
-                    <span class="stat-label">Reputation:</span>
-                    <span class="stat-value">${this.captain.reputation}</span>
-                </div>
-            </div>
-        `;
+        return this.ship.removeCargo(item, quantity);
     }
 }

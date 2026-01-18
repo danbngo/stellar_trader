@@ -1,5 +1,8 @@
 import { ce, closeModal } from './utils.js';
 
+// Re-export ce for convenience
+export { ce } from './utils.js';
+
 /**
  * Display a menu with title, content, and buttons
  */

@@ -5,6 +5,48 @@ import { getMarketContent, renderMarketTable } from './marketMenu.js';
 import { showComputerScreen } from './computerMenu.js';
 import { showOptionsModal } from './optionsMenu.js';
 
+export function getShipStatus(ship) {
+    return `
+        <div class="stats-group">
+            <div class="stat-line">
+                <span class="stat-label">Ship:</span>
+                <span class="stat-value">${ship.name}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Hull:</span>
+                <span class="stat-value">${ship.hull}/${ship.maxHull}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Fuel:</span>
+                <span class="stat-value">${ship.fuel}/${ship.maxFuel}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Cargo:</span>
+                <span class="stat-value">${ship.getTotalCargo()}/${ship.maxCargo}</span>
+            </div>
+        </div>
+    `;
+}
+
+export function getCaptainStatus(captain) {
+    return `
+        <div class="stats-group">
+            <div class="stat-line">
+                <span class="stat-label">Captain:</span>
+                <span class="stat-value">${captain.name}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Credits:</span>
+                <span class="stat-value">${captain.credits}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Reputation:</span>
+                <span class="stat-value">${captain.reputation}</span>
+            </div>
+        </div>
+    `;
+}
+
 export function showMainMenu() {
     const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
     
@@ -70,7 +112,7 @@ function getSystemInfoContent(system) {
             </div>
         </div>
         <h3 style="color: #0bf; margin: 20px 0 15px;">YOUR SHIP</h3>
-        ${window.gameState.getShipStatus()}
+        ${getShipStatus(window.gameState.ship)}
     `;
     
     const rightColumn = `
@@ -87,7 +129,7 @@ function getSystemInfoContent(system) {
             }
         </div>
         <h3 style="color: #0bf; margin: 20px 0 15px;">CAPTAIN INFO</h3>
-        ${window.gameState.getCaptainStatus()}
+        ${getCaptainStatus(window.gameState.captain)}
     `;
     
     const layout = createTwoColumnLayout({ leftColumn, rightColumn });

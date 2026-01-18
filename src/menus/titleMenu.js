@@ -1,7 +1,8 @@
 import { showMenu } from '../ui.js';
 import { GameState } from '../classes/GameState.js';
+import { showMainMenu } from './mainMenu.js';
 
-export function showTitleScreen(showMainMenu) {
+export function showTitleScreen() {
     showMenu({
         title: 'STELLAR TRADER',
         content: `
@@ -11,7 +12,7 @@ export function showTitleScreen(showMainMenu) {
         buttons: [
             {
                 text: 'New Game',
-                action: () => startNewGame(showMainMenu)
+                action: () => startNewGame()
             },
             {
                 text: 'Load Game',
@@ -20,20 +21,20 @@ export function showTitleScreen(showMainMenu) {
                         title: 'LOAD GAME',
                         content: '<p>Save system not yet implemented.</p>',
                         buttons: [
-                            { text: 'Back', action: () => showTitleScreen(showMainMenu) }
+                            { text: 'Back', action: () => showTitleScreen() }
                         ]
                     });
                 }
             },
             {
                 text: 'Credits',
-                action: () => showCredits(showMainMenu)
+                action: () => showCredits()
             }
         ]
     });
 }
 
-function showCredits(showMainMenu) {
+function showCredits() {
     showMenu({
         title: 'CREDITS',
         content: `
@@ -43,12 +44,12 @@ function showCredits(showMainMenu) {
             <p>Version 1.0</p>
         `,
         buttons: [
-            { text: 'Back', action: () => showTitleScreen(showMainMenu) }
+            { text: 'Back', action: () => showTitleScreen() }
         ]
     });
 }
 
-function startNewGame(showMainMenu) {
+function startNewGame() {
     window.gameState = new GameState();
     
     showMenu({
@@ -72,7 +73,7 @@ function startNewGame(showMainMenu) {
             },
             {
                 text: 'Back',
-                action: () => showTitleScreen(showMainMenu)
+                action: () => showTitleScreen()
             }
         ]
     });

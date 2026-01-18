@@ -1,5 +1,6 @@
 import { ce, createDataTable, createButton } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
+import { Ship } from '../classes/Ship.js';
 
 export function getShipyardContent() {
     return `
@@ -56,9 +57,9 @@ export function renderShipyardTable() {
     leftCol.appendChild(yourShipsSection);
     
     const shipsForSale = [
-        { name: 'Scout Ship', type: 'Scout', hull: 80, fuel: 150, cargo: 30, value: 8000, weapons: 3 },
-        { name: 'Cargo Hauler', type: 'Freighter', hull: 120, fuel: 100, cargo: 100, value: 15000, weapons: 1 },
-        { name: 'Battle Cruiser', type: 'Combat', hull: 200, fuel: 120, cargo: 40, value: 25000, weapons: 8 }
+        new Ship('Scout Ship', 'Scout', 80, 150, 30, 3),
+        new Ship('Cargo Hauler', 'Freighter', 120, 100, 100, 1),
+        new Ship('Battle Cruiser', 'Combat', 200, 120, 40, 8)
     ];
     
     const shipsSection = ce({
@@ -74,8 +75,8 @@ export function renderShipyardTable() {
         scrollable: true,
         headers: ['Name', 'Type', 'Hull', 'Fuel', 'Cargo', 'Price'],
         rows: shipsForSale.map((ship, idx) => ({
-            cells: [ship.name, ship.type, ship.hull, ship.fuel, ship.cargo, `${ship.value} cr`],
-            data: { ...ship, index: idx }
+            cells: [ship.name, ship.type, ship.maxHull, ship.maxFuel, ship.maxCargo, `${ship.value} cr`],
+            data: { ship, index: idx }
         })),
         onSelect: (rowData) => {
             window.selectedShipToBuy = rowData.data;
@@ -97,12 +98,12 @@ function renderShipyardButtons() {
     buttonsDiv.innerHTML = '';
     
     if (window.selectedShipToBuy) {
-        const ship = window.selectedShipToBuy;
+        const { ship } = window.selectedShipToBuy;
         const canAfford = window.gameState.captain.credits >= ship.value;
         
         buttonsDiv.appendChild(createButton({
             text: `Purchase Ship (${ship.value} cr)`,
-            action: () => buyShip(ship.index),
+            action: () => buyShip(window.selectedShipToBuy.index),
             disabled: !canAfford,
             disabledReason: canAfford ? '' : `Need ${ship.value} credits (have ${window.gameState.captain.credits})`
         }));
@@ -130,26 +131,23 @@ function renderShipyardButtons() {
 }
 
 function buyShip(index) {
-    const ships = [
-        { name: 'Scout Ship', type: 'Scout', hull: 80, fuel: 150, cargo: 30, value: 8000, weapons: 3 },
-        { name: 'Cargo Hauler', type: 'Freighter', hull: 120, fuel: 100, cargo: 100, value: 15000, weapons: 1 },
-        { name: 'Battle Cruiser', type: 'Combat', hull: 200, fuel: 120, cargo: 40, value: 25000, weapons: 8 }
+    const shipsForSale = [
+        new Ship('Scout Ship', 'Scout', 80, 150, 30, 3),
+        new Ship('Cargo Hauler', 'Freighter', 120, 100, 100, 1),
+        new Ship('Battle Cruiser', 'Combat', 200, 120, 40, 8)
     ];
     
-    const shipTemplate = ships[index];
-    if (window.gameState.spendCredits(shipTemplate.value)) {
-        const newShip = {
-            name: shipTemplate.name,
-            type: shipTemplate.type,
-            hull: shipTemplate.hull,
-            maxHull: shipTemplate.hull,
-            fuel: shipTemplate.fuel,
-            maxFuel: shipTemplate.fuel,
-            cargo: {},
-            maxCargo: shipTemplate.cargo,
-            value: shipTemplate.value,
-            weapons: shipTemplate.weapons
-        };
+    const shipTemplate = shipsForSale[index];
+    const newShip = new Ship(
+        shipTemplate.name,
+        shipTemplate.type,
+        shipTemplate.maxHull,
+        shipTemplate.maxFuel,
+        shipTemplate.maxCargo,
+        shipTemplate.weapons
+    );
+    
+    if (window.gameState.spendCredits(newShip.value)) {
         window.gameState.ownedShips.push(newShip);
         showMainMenu();
     }
