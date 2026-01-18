@@ -11,7 +11,6 @@ export function showComputerScreen() {
     const content = ce({
         className: 'menu-content',
         children: [
-            ce({ tag: 'h2', style: { color: '#0bf', marginBottom: '20px' }, text: 'SHIP COMPUTER' }),
             createTabs(tabs)
         ]
     });
