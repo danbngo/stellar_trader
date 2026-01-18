@@ -115,25 +115,12 @@ function getSystemInfoContent(system) {
                 <span class="stat-value">${system.merchantsLevel}/10</span>
             </div>
         </div>
-        <h3 style="color: #0bf; margin: 20px 0 15px;">YOUR SHIP</h3>
-        ${getShipStatus(window.gameState.ship)}
     `;
     
     const rightColumn = `
-        <h3 style="color: #0bf; margin-bottom: 15px;">CARGO HOLD</h3>
-        <div class="stats-group">
-            ${Object.keys(window.gameState.ship.cargo).length > 0 ? 
-                Object.entries(window.gameState.ship.cargo).map(([item, qty]) => `
-                    <div class="stat-line">
-                        <span class="stat-label">${item.charAt(0).toUpperCase() + item.slice(1)}:</span>
-                        <span class="stat-value">${qty} units</span>
-                    </div>
-                `).join('') : 
-                '<p style="text-align: center; color: #888;">Cargo hold is empty</p>'
-            }
+        <div style="color: #888; text-align: center; padding: 40px 20px;">
+            <p>Additional system details coming soon...</p>
         </div>
-        <h3 style="color: #0bf; margin: 20px 0 15px;">CAPTAIN INFO</h3>
-        ${getCaptainStatus(window.gameState.captain)}
     `;
     
     const layout = createTwoColumnLayout({ leftColumn, rightColumn });

@@ -96,16 +96,7 @@ function showSkillSelection() {
     showMenu({
         title: 'SKILL SELECTION',
         content: content.outerHTML,
-        buttons: [
-            {
-                text: 'Begin Journey',
-                action: () => showMainMenu()
-            },
-            {
-                text: 'Back',
-                action: () => startNewGame()
-            }
-        ]
+        buttons: []
     });
     
     renderSkillSelectionTable();
@@ -123,11 +114,11 @@ function renderSkillSelectionTable() {
         headers: ['Skill', 'Level', 'Description'],
         rows: SKILL_NAMES.map(skillName => {
             const skill = SKILLS[skillName];
-            const level = window.gameState.captain.skills[skillName];
+            const level = window.gameState.captain.skills[skillName] || 0;
             return {
                 cells: [
                     skill.name,
-                    level,
+                    level.toString(),
                     skill.description
                 ],
                 data: { skillName }
@@ -162,7 +153,7 @@ function renderSkillButtons() {
         const canIncrease = window.gameState.captain.skillPoints > 0 && currentLevel < MAX_SKILL_LEVEL;
         
         buttonsDiv.appendChild(createButton({
-            text: `Increase ${SKILLS[window.selectedSkill].name}`,
+            text: 'Increase',
             action: () => {
                 if (window.gameState.captain.increaseSkill(window.selectedSkill)) {
                     renderSkillSelectionTable();
@@ -179,4 +170,15 @@ function renderSkillButtons() {
                 (window.gameState.captain.skillPoints === 0 ? 'No skill points remaining' : 'Max skill level reached') : ''
         }));
     }
+    
+    // Add Begin Journey and Back buttons
+    buttonsDiv.appendChild(createButton({
+        text: 'Begin Journey',
+        action: () => showMainMenu()
+    }));
+    
+    buttonsDiv.appendChild(createButton({
+        text: 'Back',
+        action: () => startNewGame()
+    }));
 }

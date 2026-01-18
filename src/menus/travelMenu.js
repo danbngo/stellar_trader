@@ -149,9 +149,19 @@ function updateTravelMap() {
     
     // Draw line if destination is selected
     if (window.selectedDestination) {
+        console.log('=== Drawing SVG Line ===');
+        console.log('Selected destination:', window.selectedDestination);
+        console.log('Current system:', currentSystem.name, 'at', currentSystem.x, currentSystem.y);
+        
         const currentPos = systemPositions.get(currentSystem);
         const destSystem = window.gameState.starSystems[window.selectedDestination.index];
         const destPos = systemPositions.get(destSystem);
+        
+        console.log('Current position:', currentPos);
+        console.log('Destination system:', destSystem.name, 'at', destSystem.x, destSystem.y);
+        console.log('Destination position:', destPos);
+        console.log('SVG element:', svg);
+        console.log('Canvas rect:', canvas ? canvas.getBoundingClientRect() : 'No canvas');
         
         if (currentPos && destPos && svg) {
             // Set SVG viewBox to match canvas dimensions
@@ -166,8 +176,28 @@ function updateTravelMap() {
             line.setAttribute('stroke', window.selectedDestination.canReach ? '#0f0' : '#f00');
             line.setAttribute('stroke-width', '2');
             line.setAttribute('stroke-dasharray', '5,5');
+            
+            console.log('Line created:', line);
+            console.log('Line attributes:', {
+                x1: line.getAttribute('x1'),
+                y1: line.getAttribute('y1'),
+                x2: line.getAttribute('x2'),
+                y2: line.getAttribute('y2'),
+                stroke: line.getAttribute('stroke'),
+                strokeWidth: line.getAttribute('stroke-width')
+            });
+            
             svg.appendChild(line);
+            console.log('Line appended to SVG. SVG children count:', svg.children.length);
+        } else {
+            console.log('Missing required elements:', {
+                currentPos: !!currentPos,
+                destPos: !!destPos,
+                svg: !!svg
+            });
         }
+    } else {
+        console.log('No selected destination');
     }
 }
 
