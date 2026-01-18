@@ -2,6 +2,25 @@ import { ce, createDataTable, createButton } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 import { CARGO_TYPES } from '../defs/CARGO_TYPES.js';
 
+// Calculate effective fees after barter skill
+function getEffectiveFees(system) {
+    const barterLevel = window.gameState.captain.skills.barter;
+    const feeReduction = barterLevel * 0.05; // 5% per level
+    return Math.max(0, system.fees - feeReduction);
+}
+
+// Calculate buy price (higher with fees)
+function getBuyPrice(basePrice, system) {
+    const effectiveFees = getEffectiveFees(system);
+    return Math.ceil(basePrice * (1 + effectiveFees));
+}
+
+// Calculate sell price (lower with fees)
+function getSellPrice(basePrice, system) {
+    const effectiveFees = getEffectiveFees(system);
+    return Math.floor(basePrice * (1 - effectiveFees));
+}
+
 export function getMarketContent(system) {
     return `
         <h3 style="color: #0bf; margin-bottom: 15px;">COMMODITY MARKET</h3>
@@ -45,24 +64,22 @@ export function renderMarketTable(system) {
     const marketTable = createDataTable({
         id: 'market-goods',
         scrollable: true,
-        headers: ['Commodity', 'Price (per unit)', 'Base Price', 'Differential', 'Available'],
+        headers: ['Commodity', 'Buy Price', 'Sell Price', 'Base', 'Available'],
         rows: goods.map(good => {
             const cargoType = CARGO_TYPES[good];
-            const currentPrice = system.marketPrices[good];
             const basePrice = cargoType.baseValue;
-            const diff = currentPrice - basePrice;
-            const diffText = diff > 0 ? `+${diff}` : `${diff}`;
-            const diffColor = diff > 0 ? '#f00' : diff < 0 ? '#0f0' : '#888';
+            const buyPrice = getBuyPrice(system.marketPrices[good], system);
+            const sellPrice = getSellPrice(system.marketPrices[good], system);
             
             return {
                 cells: [
                     good.charAt(0).toUpperCase() + good.slice(1),
-                    `${currentPrice} cr`,
+                    `${buyPrice} cr`,
+                    `${sellPrice} cr`,
                     `${basePrice} cr`,
-                    `<span style="color: ${diffColor};">${diffText}</span>`,
                     `${system.cargo[good]} units`
                 ],
-                data: { good, price: currentPrice, available: system.cargo[good] }
+                data: { good, buyPrice, sellPrice, basePrice, available: system.cargo[good] }
             };
         }),
         onSelect: (rowData) => {
@@ -88,14 +105,17 @@ export function renderMarketTable(system) {
             id: 'cargo-goods',
             scrollable: true,
             headers: ['Commodity', 'Quantity', 'Value'],
-            rows: cargoItems.map(([good, qty]) => ({
-                cells: [
-                    good.charAt(0).toUpperCase() + good.slice(1),
-                    `${qty} units`,
-                    `${system.marketPrices[good] * qty} cr`
-                ],
-                data: { good, quantity: qty, price: system.marketPrices[good] }
-            })),
+            rows: cargoItems.map(([good, qty]) => {
+                const sellPrice = getSellPrice(system.marketPrices[good], system);
+                return {
+                    cells: [
+                        good.charAt(0).toUpperCase() + good.slice(1),
+                        `${qty} units`,
+                        `${sellPrice * qty} cr`
+                    ],
+                    data: { good, quantity: qty, sellPrice }
+                };
+            }),
             onSelect: (rowData) => {
                 window.selectedCargoGood = rowData.data;
                 renderMarketButtons(system);
@@ -123,24 +143,24 @@ function renderMarketButtons(system) {
     buttonsDiv.innerHTML = '';
     
     if (window.selectedMarketGood) {
-        const { good, price, available } = window.selectedMarketGood;
+        const { good, buyPrice, sellPrice, available } = window.selectedMarketGood;
         const cargoSpace = window.gameState.ship.maxCargo - window.gameState.getTotalCargo();
         const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
         const systemCargo = currentSystem.cargo[good] || 0;
         
-        const canBuy1 = window.gameState.captain.credits >= price && cargoSpace >= 1 && systemCargo >= 1;
+        const canBuy1 = window.gameState.captain.credits >= buyPrice && cargoSpace >= 1 && systemCargo >= 1;
         const buy1Reason = systemCargo < 1 ? 'Market out of stock' :
-                          window.gameState.captain.credits < price ? `Need ${price} credits (have ${window.gameState.captain.credits})` :
+                          window.gameState.captain.credits < buyPrice ? `Need ${buyPrice} credits (have ${window.gameState.captain.credits})` :
                           cargoSpace < 1 ? 'Cargo hold is full' : '';
         
         buttonsDiv.appendChild(createButton({
-            text: `Buy 1 ${good} (${price} cr)`,
-            action: () => buyGood(good, price, 1, system),
+            text: `Buy 1 ${good} (${buyPrice} cr)`,
+            action: () => buyGood(good, buyPrice, 1, system),
             disabled: !canBuy1,
             disabledReason: buy1Reason
         }));
         
-        const qty10Cost = price * 10;
+        const qty10Cost = buyPrice * 10;
         const canBuy10 = window.gameState.captain.credits >= qty10Cost && cargoSpace >= 10 && systemCargo >= 10;
         const buy10Reason = systemCargo < 10 ? `Only ${systemCargo} units available` :
                            window.gameState.captain.credits < qty10Cost ? `Need ${qty10Cost} credits (have ${window.gameState.captain.credits})` :
@@ -148,32 +168,32 @@ function renderMarketButtons(system) {
         
         buttonsDiv.appendChild(createButton({
             text: `Buy 10 ${good} (${qty10Cost} cr)`,
-            action: () => buyGood(good, price, 10, system),
+            action: () => buyGood(good, buyPrice, 10, system),
             disabled: !canBuy10,
             disabledReason: buy10Reason
         }));
     }
     
     if (window.selectedCargoGood) {
-        const { good, quantity, price } = window.selectedCargoGood;
+        const { good, quantity, sellPrice } = window.selectedCargoGood;
         
         buttonsDiv.appendChild(createButton({
-            text: `Sell 1 ${good} (${price} cr)`,
-            action: () => sellGood(good, price, 1, system),
+            text: `Sell 1 ${good} (${sellPrice} cr)`,
+            action: () => sellGood(good, sellPrice, 1, system),
             disabled: quantity < 1,
             disabledReason: quantity < 1 ? 'Not enough cargo' : ''
         }));
         
         buttonsDiv.appendChild(createButton({
-            text: `Sell 10 ${good} (${price * 10} cr)`,
-            action: () => sellGood(good, price, 10, system),
+            text: `Sell 10 ${good} (${sellPrice * 10} cr)`,
+            action: () => sellGood(good, sellPrice, 10, system),
             disabled: quantity < 10,
             disabledReason: quantity < 10 ? `Only have ${quantity} units` : ''
         }));
         
         buttonsDiv.appendChild(createButton({
-            text: `Sell All ${good} (${price * quantity} cr)`,
-            action: () => sellGood(good, price, quantity, system),
+            text: `Sell All ${good} (${sellPrice * quantity} cr)`,
+            action: () => sellGood(good, sellPrice, quantity, system),
             disabled: quantity < 1,
             disabledReason: quantity < 1 ? 'Not enough cargo' : ''
         }));
@@ -190,7 +210,7 @@ function buyGood(good, price, quantity, system) {
     
     if (available >= quantity && window.gameState.spendCredits(price * quantity) && window.gameState.addCargo(good, quantity)) {
         currentSystem.cargo[good] -= quantity;
-        showMainMenu();
+        renderMarketTable(currentSystem);
     }
 }
 
@@ -199,6 +219,6 @@ function sellGood(good, price, quantity, system) {
         window.gameState.addCredits(price * quantity);
         const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
         currentSystem.cargo[good] = (currentSystem.cargo[good] || 0) + quantity;
-        showMainMenu();
+        renderMarketTable(currentSystem);
     }
 }

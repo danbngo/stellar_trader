@@ -1,16 +1,18 @@
-import { showModal, createTabs, ce } from '../ui.js';
+import { showModal, createTabs, createDataTable, createButton, ce } from '../ui.js';
+import { SKILLS, SKILL_NAMES, MAX_SKILL_LEVEL } from '../defs/SKILLS.js';
 
 export function showComputerScreen() {
     const tabs = [
         { label: 'Captain Info', content: getCaptainInfoContent() },
-        { label: 'Ship Status', content: getShipStatusContent() }
+        { label: 'Ship Status', content: getShipStatusContent() },
+        { label: 'Skills', content: getSkillsContent(), onActivate: renderSkillsTab }
     ];
     
     const content = ce({
         className: 'menu-content',
         children: [
             ce({ tag: 'h2', style: { color: '#0bf', marginBottom: '20px' }, text: 'SHIP COMPUTER' }),
-            createTabs({ tabs, defaultTab: 0 })
+            createTabs(tabs)
         ]
     });
     
@@ -47,6 +49,79 @@ function getCaptainInfoContent() {
             </div>
         </div>
     `;
+}
+
+function getSkillsContent() {
+    return `
+        <div class="stats-group">
+            <h3 style="color: #0bf; margin-bottom: 15px;">SKILLS</h3>
+            <p style="margin-bottom: 15px;">Skill Points Available: <span id="skill-points-display">${window.gameState.captain.skillPoints}</span></p>
+            <div id="skills-table-container"></div>
+            <div id="skills-buttons" class="button-container" style="margin-top: 15px;"></div>
+        </div>
+    `;
+}
+
+function renderSkillsTab() {
+    const container = document.getElementById('skills-table-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    const skillTable = createDataTable({
+        id: 'skills-table',
+        scrollable: true,
+        headers: ['Skill', 'Level', 'Description'],
+        rows: SKILL_NAMES.map(skillName => {
+            const skill = SKILLS[skillName];
+            const level = window.gameState.captain.skills[skillName];
+            return {
+                cells: [
+                    skill.name,
+                    `${level}/${MAX_SKILL_LEVEL}`,
+                    skill.description
+                ],
+                data: { skillName }
+            };
+        }),
+        onSelect: (rowData) => {
+            window.selectedComputerSkill = rowData.data.skillName;
+            renderSkillsButtons();
+        }
+    });
+    
+    container.appendChild(skillTable);
+    renderSkillsButtons();
+}
+
+function renderSkillsButtons() {
+    const buttonsDiv = document.getElementById('skills-buttons');
+    if (!buttonsDiv) return;
+    
+    buttonsDiv.innerHTML = '';
+    
+    if (window.selectedComputerSkill) {
+        const currentLevel = window.gameState.captain.skills[window.selectedComputerSkill];
+        const canIncrease = window.gameState.captain.skillPoints > 0 && currentLevel < MAX_SKILL_LEVEL;
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Increase ${SKILLS[window.selectedComputerSkill].name}`,
+            action: () => {
+                if (window.gameState.captain.increaseSkill(window.selectedComputerSkill)) {
+                    renderSkillsTab();
+                    
+                    // Update skill points display
+                    const display = document.getElementById('skill-points-display');
+                    if (display) {
+                        display.textContent = window.gameState.captain.skillPoints;
+                    }
+                }
+            },
+            disabled: !canIncrease,
+            disabledReason: !canIncrease ? 
+                (window.gameState.captain.skillPoints === 0 ? 'No skill points available' : 'Max skill level reached') : ''
+        }));
+    }
 }
 
 function getShipStatusContent() {

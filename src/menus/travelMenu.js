@@ -172,10 +172,11 @@ function updateTravelMap() {
 }
 
 function selectTravelDestination(system, index, distance, fuelNeeded, canReach, left, top) {
-    // Calculate trip duration based on distance and ship speed
+    // Calculate trip duration based on distance, ship speed, and piloting skill
     const baseSpeed = 1.25; // Base speed units per day
     const shipSpeed = window.gameState.ship.speed || 1.0;
-    const effectiveSpeed = baseSpeed * shipSpeed;
+    const pilotingBonus = 1 + (window.gameState.captain.skills.piloting * 0.05); // 5% per level
+    const effectiveSpeed = baseSpeed * shipSpeed * pilotingBonus;
     const tripDuration = Math.ceil(distance / effectiveSpeed);
     
     window.selectedDestination = { system, index, distance, fuelNeeded, canReach, tripDuration };

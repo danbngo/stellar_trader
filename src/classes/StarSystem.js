@@ -4,6 +4,7 @@ export class StarSystem {
         this.x = x;
         this.y = y;
         this.neighborSystems = [];
+        this.fees = Math.random(); // 0-1, affects buy/sell prices
         this.marketPrices = this.generateMarketPrices();
         this.cargo = this.generateCargo();
         this.piracyLevel = Math.floor(Math.random() * 10) + 1; // 1-10

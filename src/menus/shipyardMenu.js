@@ -170,13 +170,13 @@ function buyShip(index) {
     
     if (window.gameState.spendCredits(newShip.value)) {
         window.gameState.ownedShips.push(newShip);
-        showMainMenu();
+        renderShipyardTable();
     }
 }
 
 function switchToShip(index) {
     window.gameState.ship = window.gameState.ownedShips[index];
-    showMainMenu();
+    renderShipyardTable();
 }
 
 function repairShip(index) {
@@ -207,5 +207,5 @@ function sellShip(index) {
     const ship = window.gameState.ownedShips[index];
     window.gameState.addCredits(ship.value);
     window.gameState.ownedShips.splice(index, 1);
-    showMainMenu();
+    renderShipyardTable();
 }

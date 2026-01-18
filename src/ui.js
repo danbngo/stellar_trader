@@ -51,9 +51,26 @@ export function showModal(params = {}) {
             tag: 'button',
             className: btn.danger ? 'modal-button danger' : 'modal-button',
             text: btn.text,
-            onclick: btn.action
+            onclick: btn.action === 'close' ? closeModal : btn.action
         })
     );
+    
+    // Handle content - can be string or HTMLElement
+    let contentElement = null;
+    if (params.content) {
+        if (typeof params.content === 'string') {
+            contentElement = ce({
+                className: 'modal-content',
+                html: params.content
+            });
+        } else {
+            // Wrap HTMLElement in modal-content div
+            contentElement = ce({
+                className: 'modal-content',
+                children: [params.content]
+            });
+        }
+    }
     
     const modal = ce({
         className: 'modal',
@@ -62,10 +79,7 @@ export function showModal(params = {}) {
                 className: 'modal-title',
                 text: params.title
             }) : null,
-            params.content ? ce({
-                className: 'modal-content',
-                html: params.content
-            }) : null,
+            contentElement,
             ce({
                 className: 'modal-buttons',
                 children: buttonElements

@@ -22,7 +22,9 @@ export function ce(params = {}) {
     }
     
     if (params.onclick) {
-        element.addEventListener('click', params.onclick);
+        if (typeof params.onclick === 'function') {
+            element.addEventListener('click', params.onclick);
+        }
     }
     
     if (params.children) {

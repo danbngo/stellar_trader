@@ -327,6 +327,13 @@ function startTravelInterval() {
         
         currentDay += 0.1; // Increment by 0.1 days for smoother progress
         
+        // Engineering skill: repair 1 hull per day per level
+        const engineeringLevel = window.gameState.captain.skills.engineering;
+        if (engineeringLevel > 0) {
+            const repairPerTick = (engineeringLevel * 0.1); // 0.1 days per tick
+            window.gameState.ship.repair(repairPerTick);
+        }
+        
         updateProgressBar();
         renderJourneyContent();
         
