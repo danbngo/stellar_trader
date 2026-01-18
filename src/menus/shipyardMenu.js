@@ -1,7 +1,6 @@
 import { ce, createDataTable, createButton, statColorSpan } from '../ui.js';
-import { showMainMenu } from './mainMenu.js';
 import { generateShip } from '../generators/shipGenerators.js';
-import { SCOUT, FREIGHTER, DESTROYER } from '../defs/SHIP_TYPES.js';
+import { SCOUT, FREIGHTER, DESTROYER, AVERAGE_SHIP } from '../defs/SHIP_TYPES.js';
 
 let shipyardMode = 'buy'; // 'buy' or 'sell'
 
@@ -42,18 +41,26 @@ export function renderShipyardTable() {
             scrollable: true,
             autoSelectFirst: true,
             headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Status'],
-            rows: window.gameState.ownedShips.map((ship, idx) => ({
-                cells: [
-                    ship.name, 
-                    ship.type, 
-                    `${ship.hull}/${ship.maxHull}`,
-                    `${ship.shields}/${ship.maxShields}`,
-                    `${ship.speed.toFixed(1)}x`,
-                    ship.weapons,
-                    ship === window.gameState.ship ? '<span style="color: #0bf;">ACTIVE</span>' : `${ship.value} cr`
-                ],
-                data: { ship, index: idx }
-            })),
+            rows: window.gameState.ownedShips.map((ship, idx) => {
+                // Calculate ratios vs average ship
+                const hullRatio = ship.maxHull / AVERAGE_SHIP.hull;
+                const shieldsRatio = ship.maxShields / AVERAGE_SHIP.shields;
+                const speedRatio = ship.speed / AVERAGE_SHIP.speed;
+                const weaponsRatio = ship.weapons / AVERAGE_SHIP.weapons;
+                
+                return {
+                    cells: [
+                        ship.name, 
+                        ship.type, 
+                        statColorSpan(`${ship.hull}/${ship.maxHull}`, hullRatio),
+                        statColorSpan(`${ship.shields}/${ship.maxShields}`, shieldsRatio),
+                        statColorSpan(`${ship.speed.toFixed(1)}x`, speedRatio),
+                        statColorSpan(ship.weapons.toString(), weaponsRatio),
+                        ship === window.gameState.ship ? '<span style="color: #0bf;">ACTIVE</span>' : `${ship.value} cr`
+                    ],
+                    data: { ship, index: idx }
+                };
+            }),
             onSelect: (rowData) => {
                 window.selectedOwnedShip = rowData.data;
                 window.selectedShipToBuy = null;
@@ -62,7 +69,7 @@ export function renderShipyardTable() {
         });
         
         yourShipsSection.appendChild(yourShipsTable);
-        leftCol.appendChild(yourShipsSection);
+        container.appendChild(yourShipsSection);
     } else {
         // Show ships for sale (for buying)
         const shipsSection = ce({
@@ -81,18 +88,23 @@ export function renderShipyardTable() {
             rows: shipsForSale.map((ship, idx) => {
                 const basePrice = ship.value;
                 const effectivePrice = Math.round(basePrice * fees);
-                const ratio = effectivePrice / basePrice;
-                const priceText = statColorSpan(`${effectivePrice} cr`, ratio);
+                const priceRatio = effectivePrice / basePrice;
+                
+                // Calculate ratios vs average ship
+                const hullRatio = ship.maxHull / AVERAGE_SHIP.hull;
+                const shieldsRatio = ship.maxShields / AVERAGE_SHIP.shields;
+                const speedRatio = ship.speed / AVERAGE_SHIP.speed;
+                const weaponsRatio = ship.weapons / AVERAGE_SHIP.weapons;
                 
                 return {
                     cells: [
                         ship.name, 
                         ship.type, 
-                        ship.maxHull, 
-                        ship.maxShields, 
-                        `${ship.speed.toFixed(1)}x`,
-                        ship.weapons,
-                        priceText
+                        statColorSpan(ship.maxHull.toString(), hullRatio),
+                        statColorSpan(ship.maxShields.toString(), shieldsRatio),
+                        statColorSpan(`${ship.speed.toFixed(1)}x`, speedRatio),
+                        statColorSpan(ship.weapons.toString(), weaponsRatio),
+                        statColorSpan(`${effectivePrice} cr`, priceRatio)
                     ],
                     data: { ship, index: idx, effectivePrice }
                 };
@@ -105,7 +117,7 @@ export function renderShipyardTable() {
         });
         
         shipsSection.appendChild(shipsTable);
-        leftCol.appendChild(shipsSection);
+        container.appendChild(shipsSection);
     }
     
     renderShipyardButtons();

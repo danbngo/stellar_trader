@@ -24,16 +24,26 @@ export function generateShip(shipType = null, isDamaged = null) {
     // Determine if ship is damaged (50% chance if not explicitly set)
     const shouldBeDamaged = isDamaged !== null ? isDamaged : Math.random() < 0.5;
     
-    // Create ship with full stats
+    // Apply stat fuzz (0.5x to 2x) to all stats
+    const fuzzFactor = () => 0.5 + Math.random() * 1.5; // Random between 0.5 and 2.0
+    
+    const fuzzedHull = Math.round(shipType.hull * fuzzFactor());
+    const fuzzedShields = Math.round(shipType.shields * fuzzFactor());
+    const fuzzedFuel = Math.round(shipType.fuel * fuzzFactor());
+    const fuzzedCargo = Math.round(shipType.cargo * fuzzFactor());
+    const fuzzedSpeed = Math.round((shipType.speed * fuzzFactor()) * 10) / 10; // Round to 1 decimal
+    const fuzzedWeapons = Math.round(shipType.weapons * fuzzFactor());
+    
+    // Create ship with fuzzed stats
     const ship = new Ship(
         generateShipName(),
         shipType.name,
-        shipType.hull,
-        shipType.shields,
-        shipType.fuel,
-        shipType.cargo,
-        shipType.speed,
-        shipType.weapons
+        fuzzedHull,
+        fuzzedShields,
+        fuzzedFuel,
+        fuzzedCargo,
+        fuzzedSpeed,
+        fuzzedWeapons
     );
     
     // Apply random hull damage if needed

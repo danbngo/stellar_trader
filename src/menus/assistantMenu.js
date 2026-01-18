@@ -37,11 +37,17 @@ function renderTradeInfo() {
     
     container.innerHTML = '';
     
-    // Get all reachable seen systems
+    // Get current system and all reachable seen systems
+    const currentSystem = {
+        system: window.gameState.starSystems[window.gameState.currentSystemIndex],
+        index: window.gameState.currentSystemIndex,
+        isCurrent: true
+    };
+    
     const reachableSystems = window.gameState.starSystems
-        .map((system, index) => ({ system, index }))
+        .map((system, index) => ({ system, index, isCurrent: false }))
         .filter(({ system, index }) => {
-            // Skip current system
+            // Skip current system (we'll add it separately)
             if (index === window.gameState.currentSystemIndex) return false;
             
             // Only show seen systems
@@ -52,7 +58,10 @@ function renderTradeInfo() {
             return canReach;
         });
     
-    if (reachableSystems.length === 0) {
+    // Add current system at the beginning
+    const allSystems = [currentSystem, ...reachableSystems];
+    
+    if (allSystems.length === 1) { // Only current system, no reachable systems
         container.innerHTML = '<p style="color: #888; text-align: center; padding: 2rem;">No reachable systems. Refuel to see trade opportunities.</p>';
         renderTradeInfoButtons();
         return;
@@ -65,12 +74,12 @@ function renderTradeInfo() {
     const headers = ['System', 'Distance', ...cargoTypes.map(type => CARGO_TYPES[type].name)];
     
     // Build table rows
-    const rows = reachableSystems.map(({ system }) => {
-        const { distance } = window.gameState.canReachSystem(system);
+    const rows = allSystems.map(({ system, isCurrent }) => {
+        const { distance } = isCurrent ? { distance: 0 } : window.gameState.canReachSystem(system);
         
         const cells = [
-            system.name,
-            `${distance.toFixed(1)} ly`,
+            isCurrent ? `⭐ ${system.name}` : system.name,
+            isCurrent ? '-' : `${distance.toFixed(1)} ly`,
             ...cargoTypes.map(type => {
                 const baseValue = CARGO_TYPES[type].baseValue;
                 const marketPrice = system.marketPrices[type];

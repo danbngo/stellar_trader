@@ -436,15 +436,22 @@ export function createTopButtons(callbacks = {}) {
     const existing = document.querySelector('.top-right-buttons');
     if (existing) existing.remove();
     
+    // Determine system button icon and callback based on active journey
+    const hasActiveJourney = window.gameState?.activeJourney;
+    const systemIcon = hasActiveJourney ? '🏙️' : '⭐'; // City when docked, star when traveling
+    const systemCallback = hasActiveJourney 
+        ? () => import('./menus/travelEncounterMenu.js').then(m => m.showTravelEncounterMenu())
+        : callbacks.showSystem;
+    
     const buttonsContainer = ce({
         className: 'top-right-buttons',
         children: [
             ce({
                 tag: 'button',
                 className: window.currentViewMode === 'system' ? 'icon-button active' : 'icon-button',
-                html: '⭐', // Star emoji
+                html: systemIcon,
                 attrs: { title: 'System', 'data-mode': 'system' },
-                onclick: () => switchViewMode('system', callbacks)
+                onclick: () => switchViewMode('system', { ...callbacks, showSystem: systemCallback })
             }),
             ce({
                 tag: 'button',

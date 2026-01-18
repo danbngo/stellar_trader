@@ -41,3 +41,18 @@ export const SHIP_TYPE_ARRAY = [
     CRUISER,
     BATTLESHIP
 ];
+
+// Calculate average ship stats for comparison baseline
+function calculateAverageShip() {
+    const count = SHIP_TYPE_ARRAY.length;
+    const avgHull = SHIP_TYPE_ARRAY.reduce((sum, ship) => sum + ship.hull, 0) / count;
+    const avgShields = SHIP_TYPE_ARRAY.reduce((sum, ship) => sum + ship.shields, 0) / count;
+    const avgFuel = SHIP_TYPE_ARRAY.reduce((sum, ship) => sum + ship.fuel, 0) / count;
+    const avgCargo = SHIP_TYPE_ARRAY.reduce((sum, ship) => sum + ship.cargo, 0) / count;
+    const avgSpeed = SHIP_TYPE_ARRAY.reduce((sum, ship) => sum + ship.speed, 0) / count;
+    const avgWeapons = SHIP_TYPE_ARRAY.reduce((sum, ship) => sum + ship.weapons, 0) / count;
+    
+    return new ShipType('Average', avgHull, avgShields, avgFuel, avgCargo, avgSpeed, avgWeapons);
+}
+
+export const AVERAGE_SHIP = calculateAverageShip();

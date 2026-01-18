@@ -35,21 +35,16 @@ export function getMarketContent(system) {
                 <span class="stat-value">${window.gameState.captain.credits}</span>
             </div>
         </div>
-        <div class="two-column-layout">
-            <div class="column" id="market-left"></div>
-            <div class="column" id="market-right"></div>
-        </div>
+        <div id="market-container"></div>
     `;
 }
 
 export function renderMarketTable(system) {
-    const leftCol = document.getElementById('market-left');
-    const rightCol = document.getElementById('market-right');
+    const container = document.getElementById('market-container');
     const buttonsDiv = window.currentMenu?.getButtonContainer();
-    if (!leftCol || !rightCol || !buttonsDiv) return;
+    if (!container || !buttonsDiv) return;
     
-    leftCol.innerHTML = '';
-    rightCol.innerHTML = '';
+    container.innerHTML = '';
     
     const goods = ['food', 'water', 'air'];
     
@@ -97,7 +92,7 @@ export function renderMarketTable(system) {
     });
     
     marketSection.appendChild(marketTable);
-    leftCol.appendChild(marketSection);
+    container.appendChild(marketSection);
     } else {
         // Show cargo (for selling)
         const cargoSection = ce({
@@ -142,7 +137,7 @@ export function renderMarketTable(system) {
             }));
         }
         
-        leftCol.appendChild(cargoSection);
+        container.appendChild(cargoSection);
     }
     
     renderMarketButtons(system);

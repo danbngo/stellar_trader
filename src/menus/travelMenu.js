@@ -1,4 +1,4 @@
-import { ce, createButton, createTwoColumnLayout, createDataTable } from '../ui.js';
+import { ce, createButton, createTwoColumnLayout, createDataTable, statColorSpan } from '../ui.js';
 import { calculateDistance } from '../utils.js';
 import { showMainMenu } from './mainMenu.js';
 import { generatePirateShip, generatePoliceShip, generateMerchantShip } from '../generators/shipGenerators.js';
@@ -122,12 +122,10 @@ function updateTravelMap() {
             systemClass += ' current';
         } else if (isSelected) {
             systemClass += ' selected';
-        } else if (isVisited) {
-            systemClass += ' visited';
-        } else if (isSeen) {
-            systemClass += ' visited';  // Seen systems use same style as visited
+        } else if (canReach) {
+            systemClass += ' reachable';
         } else {
-            systemClass += ' seen';  // Unseen systems
+            systemClass += ' unreachable';
         }
         
         const systemDot = ce({
@@ -146,7 +144,7 @@ function updateTravelMap() {
             style: { 
                 left: `${left}px`, 
                 top: `${top}px`,
-                color: isCurrent ? '#0bf' : (isVisited || isSeen) ? '#0f0' : '#888'
+                color: isCurrent ? '#0ff' : canReach ? '#0f0' : '#888'
             }
         });
         viewport.appendChild(label);
@@ -177,7 +175,7 @@ function updateTravelMap() {
             svg.setAttribute('viewBox', `0 0 ${canvasRect.width} ${canvasRect.height}`);
             
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            const strokeColor = window.selectedDestination.canReach ? '#0f0' : '#f00';
+            const strokeColor = window.selectedDestination.canReach ? '#0ff' : '#f00';
             line.setAttribute('x1', currentPos.left.toString());
             line.setAttribute('y1', currentPos.top.toString());
             line.setAttribute('x2', destPos.left.toString());
@@ -231,6 +229,28 @@ function updateDestinationInfo() {
         const { system, distance, fuelNeeded, tripDuration, canReach, isVisited, isSeen } = window.selectedDestination;
         const systemName = (isVisited || isSeen) ? system.name : 'Unknown System';
         
+        // Stats HTML - only show actual values if visited, otherwise show ?
+        let piracyHTML, policeHTML, merchantsHTML;
+        if (isVisited) {
+            const piracyMultiplier = (system.piracyLevel / 5).toFixed(1);
+            const policeMultiplier = (system.policeLevel / 5).toFixed(1);
+            const merchantsMultiplier = (system.merchantsLevel / 5).toFixed(1);
+            
+            // Piracy is bad when high (inverted ratio)
+            const piracyRatio = 1 / (system.piracyLevel / 5);
+            // Police and merchants are good when high (direct ratio)
+            const policeRatio = system.policeLevel / 5;
+            const merchantsRatio = system.merchantsLevel / 5;
+            
+            piracyHTML = statColorSpan(`${piracyMultiplier}x`, piracyRatio);
+            policeHTML = statColorSpan(`${policeMultiplier}x`, policeRatio);
+            merchantsHTML = statColorSpan(`${merchantsMultiplier}x`, merchantsRatio);
+        } else {
+            piracyHTML = '?';
+            policeHTML = '?';
+            merchantsHTML = '?';
+        }
+        
         infoDiv.innerHTML = `
             <div class="stat-line">
                 <span class="stat-label">Destination:</span>
@@ -251,6 +271,18 @@ function updateDestinationInfo() {
             <div class="stat-line">
                 <span class="stat-label">Trip Duration:</span>
                 <span class="stat-value">${tripDuration} day${tripDuration > 1 ? 's' : ''}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Piracy:</span>
+                <span class="stat-value">${piracyHTML}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Police:</span>
+                <span class="stat-value">${policeHTML}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Merchants:</span>
+                <span class="stat-value">${merchantsHTML}</span>
             </div>
         `;
     } else {
