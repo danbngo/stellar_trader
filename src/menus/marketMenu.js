@@ -1,4 +1,4 @@
-import { ce, createDataTable, createButton, showModal } from '../ui.js';
+import { ce, createDataTable, createButton, showModal, statColorSpan } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 import { CARGO_TYPES } from '../defs/CARGO_TYPES.js';
 
@@ -73,11 +73,16 @@ export function renderMarketTable(system) {
             const buyPrice = getBuyPrice(system.marketPrices[good], system);
             const sellPrice = getSellPrice(system.marketPrices[good], system);
             
+            // For buy price: higher is worse, so invert ratio (4x buy = 0.25 ratio = bad/red)
+            const buyRatio = basePrice / buyPrice; // If buyPrice is 4x base, ratio = 0.25
+            // For sell price: higher is better (4x sell = 4.0 ratio = good/green)
+            const sellRatio = sellPrice / basePrice; // If sellPrice is 4x base, ratio = 4.0
+            
             return {
                 cells: [
                     good.charAt(0).toUpperCase() + good.slice(1),
-                    `${buyPrice} cr`,
-                    `${sellPrice} cr`,
+                    statColorSpan(`${buyPrice} cr`, buyRatio),
+                    statColorSpan(`${sellPrice} cr`, sellRatio),
                     `${basePrice} cr`,
                     `${system.cargo[good]} units`
                 ],
@@ -86,6 +91,7 @@ export function renderMarketTable(system) {
         }),
         onSelect: (rowData) => {
             window.selectedMarketGood = rowData.data;
+            window.selectedCargoGood = null;
             renderMarketButtons(system);
         }
     });

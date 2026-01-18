@@ -470,7 +470,7 @@ export function createTopButtons(callbacks = {}) {
             ce({
                 tag: 'button',
                 className: window.currentViewMode === 'assistant' ? 'icon-button active' : 'icon-button',
-                html: '💻', // Computer emoji
+                html: '❓', // Computer emoji
                 attrs: { title: 'Assistant', 'data-mode': 'assistant' },
                 onclick: () => switchViewMode('assistant', callbacks)
             }),

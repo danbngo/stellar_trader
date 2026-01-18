@@ -1,5 +1,6 @@
 import { Menu, createDataTable, createButton, ce } from '../ui.js';
 import { SKILLS, SKILL_NAMES, MAX_SKILL_LEVEL } from '../defs/SKILLS.js';
+import { ProgressBar } from '../classes/ProgressBar.js';
 
 export function showCaptainMenu() {
     const menu = new Menu({
@@ -21,27 +22,48 @@ export function showCaptainMenu() {
 }
 
 function getCaptainInfoContent() {
+    const captain = window.gameState.captain;
+    const expNeeded = captain.level * 100;
+    const expProgress = captain.experience / expNeeded;
+    const progressBar = new ProgressBar(30, expProgress);
+    
     return `
         <div class="stats-group">
             <div class="stat-line">
                 <span class="stat-label">Name:</span>
-                <span class="stat-value">${window.gameState.captain.name}</span>
+                <span class="stat-value">${captain.name}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Level:</span>
+                <span class="stat-value">${captain.level}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Experience:</span>
+                <span class="stat-value">${captain.experience} / ${expNeeded}</span>
+            </div>
+            <div style="margin: 0.625rem 0; text-align: center;">
+                <div style="font-family: monospace; font-size: 12px; color: #09f; letter-spacing: 1px;">
+                    ${progressBar.getText()}
+                </div>
+                <div style="font-size: 11px; color: #888; margin-top: 0.313rem;">
+                    ${Math.round(expProgress * 100)}% to Level ${captain.level + 1}
+                </div>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Credits:</span>
-                <span class="stat-value">${window.gameState.captain.credits}</span>
+                <span class="stat-value">${captain.credits}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Days Traveled:</span>
-                <span class="stat-value">${window.gameState.captain.daysTraveled}</span>
+                <span class="stat-value">${captain.daysTraveled}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Systems Visited:</span>
-                <span class="stat-value">${window.gameState.captain.systemsVisited}</span>
+                <span class="stat-value">${captain.systemsVisited}</span>
             </div>
             <div class="stat-line">
                 <span class="stat-label">Pirates Defeated:</span>
-                <span class="stat-value">${window.gameState.captain.piratesDestroyed}</span>
+                <span class="stat-value">${captain.piratesDestroyed}</span>
             </div>
         </div>
     `;

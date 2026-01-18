@@ -7,21 +7,16 @@ let shipyardMode = 'buy'; // 'buy' or 'sell'
 
 export function getShipyardContent() {
     return `
-        <div id="shipyard-content" class="two-column-layout">
-            <div class="column" id="shipyard-left"></div>
-            <div class="column" id="shipyard-right"></div>
-        </div>
+        <div id="shipyard-container"></div>
     `;
 }
 
 export function renderShipyardTable() {
-    const leftCol = document.getElementById('shipyard-left');
-    const rightCol = document.getElementById('shipyard-right');
+    const container = document.getElementById('shipyard-container');
     const buttonsDiv = window.currentMenu?.getButtonContainer();
-    if (!leftCol || !rightCol || !buttonsDiv) return;
+    if (!container || !buttonsDiv) return;
     
-    leftCol.innerHTML = '';
-    rightCol.innerHTML = '';
+    container.innerHTML = '';
     
     const fees = window.gameState.currentSystem?.fees || 1.0;
     

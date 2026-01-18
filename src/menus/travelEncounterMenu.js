@@ -1,5 +1,6 @@
 import { ce, createButton, createTwoColumnLayout, createDataTable, showMenu, showModal, createTabs, statColorSpan } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
+import { ProgressBar } from '../classes/ProgressBar.js';
 
 // Travel state variables (module-level to share across functions)
 let currentDay = 0;
@@ -44,7 +45,7 @@ export function showTravelEncounterMenu(destIndex, destination, duration, piracy
 
 function renderTravelScreen() {
     showMenu({
-        title: 'TRAVELING TO ' + toSystem.name.toUpperCase(),
+        title: '',
         content: '<div id="travel-encounter-content"></div>',
         buttons: []
     });
@@ -72,11 +73,12 @@ function renderTravelScreen() {
 }
 
 function getJourneyContent() {
-    const progressBar = createProgressBar();
+    const progressRatio = Math.max(0, currentDay / tripDuration);
+    const progressBar = new ProgressBar(40, progressRatio);
     
     return `
         <div id="journey-progress-bar" style="font-family: monospace; font-size: 14px; color: #09f; text-align: center; margin-bottom: 20px; letter-spacing: 1px;">
-            ${progressBar} Day ${currentDay.toFixed(1)} / ${tripDuration}
+            ${progressBar.getText()} Day ${currentDay.toFixed(1)} / ${tripDuration}
         </div>
         <div id="journey-content-columns"></div>
         <div id="journey-buttons" class="button-container"></div>
@@ -90,19 +92,12 @@ function getEncounterContent() {
     `;
 }
 
-function createProgressBar() {
-    const progressPercent = Math.max(0, currentDay / tripDuration);
-    const barWidth = 40;
-    const filledWidth = Math.floor(progressPercent * barWidth);
-    const emptyWidth = barWidth - filledWidth;
-    return '[' + '='.repeat(filledWidth) + '>'.repeat(Math.min(1, emptyWidth)) + '.'.repeat(Math.max(0, emptyWidth - 1)) + ']';
-}
-
 function updateProgressBar() {
     const progressBarElement = document.getElementById('journey-progress-bar');
     if (progressBarElement) {
-        const progressBar = createProgressBar();
-        progressBarElement.textContent = progressBar + ` Day ${currentDay.toFixed(1)} / ${tripDuration}`;
+        const progressRatio = Math.max(0, currentDay / tripDuration);
+        const progressBar = new ProgressBar(40, progressRatio);
+        progressBarElement.textContent = progressBar.getText() + ` Day ${currentDay.toFixed(1)} / ${tripDuration}`;
     }
 }
 

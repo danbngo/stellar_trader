@@ -73,6 +73,7 @@ export function renderTravelTab() {
     
     updateTravelMap();
     updateDestinationInfo();
+    renderTravelButtons(); // Render buttons to show selected system on tab activation
 }
 
 function updateTravelMap() {
