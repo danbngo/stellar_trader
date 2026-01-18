@@ -2,8 +2,6 @@ import { ce, Menu, createTwoColumnLayout, createTopButtons } from '../ui.js';
 import { getTravelContent, renderTravelTab } from './travelMenu.js';
 import { getShipyardContent, renderShipyardTable } from './shipyardMenu.js';
 import { getMarketContent, renderMarketTable } from './marketMenu.js';
-import { showComputerScreen } from './computerMenu.js';
-import { showOptionsModal } from './optionsMenu.js';
 
 export function getShipStatus(ship) {
     return `
@@ -52,6 +50,17 @@ export function getCaptainStatus(captain) {
 }
 
 export function showMainMenu() {
+    window.currentViewMode = 'game';
+    renderGameView();
+    
+    createTopButtons({
+        showGame: renderGameView,
+        showComputer: () => import('./computerMenu.js').then(m => m.showComputerMenu()),
+        showOptions: () => import('./optionsMenu.js').then(m => m.showOptionsMenu())
+    });
+}
+
+function renderGameView() {
     const currentSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
     
     const menu = new Menu({
@@ -82,8 +91,6 @@ export function showMainMenu() {
     
     // Store menu reference globally so tabs can access button container
     window.currentMenu = menu;
-    
-    createTopButtons(showComputerScreen, showOptionsModal);
 }
 
 function getSystemInfoContent(system) {

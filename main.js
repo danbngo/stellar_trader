@@ -1,3 +1,4 @@
+import './src/styles/index.css';
 import { showTitleScreen } from './src/menus/titleMenu.js';
 
 // Start the game when page loads

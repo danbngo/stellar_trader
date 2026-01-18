@@ -1,4 +1,4 @@
-import { showMenu, createButton, createDataTable, ce } from '../ui.js';
+import { showMenu, createButton, createDataTable, ce, createTwoColumnLayout } from '../ui.js';
 import { GameState } from '../classes/GameState.js';
 import { showMainMenu } from './mainMenu.js';
 import { SKILLS, SKILL_NAMES, MAX_SKILL_LEVEL } from '../defs/SKILLS.js';
@@ -54,48 +54,55 @@ function startNewGame() {
     window.gameState = new GameState();
     window.gameState.captain.skillPoints = 5; // Start with 5 skill points
     
-    showMenu({
-        title: 'NEW GAME',
-        content: `
-            <p>Enter your name, Captain:</p>
-            <input type="text" id="captain-name-input" value="Captain Nova" 
-                   style="width: 100%; padding: 8px; margin: 10px 0; background: #001; 
-                   border: 1px solid #09f; color: #09f; font-family: 'Courier New', monospace;">
-        `,
-        buttons: [
-            {
-                text: 'Continue',
-                action: () => {
-                    const nameInput = document.getElementById('captain-name-input');
-                    if (nameInput && nameInput.value.trim()) {
-                        window.gameState.captain.name = nameInput.value.trim();
-                    }
-                    showSkillSelection();
-                }
-            },
-            {
-                text: 'Back',
-                action: () => showTitleScreen()
-            }
-        ]
-    });
+    showCharacterCreation();
 }
 
-function showSkillSelection() {
-    const content = ce({
+function showCharacterCreation() {
+    // Left column: Name entry
+    const leftColumn = ce({
         children: [
             ce({ 
+                tag: 'h3', 
+                text: 'Captain Information',
+                style: { marginBottom: '1rem' }
+            }),
+            ce({ 
                 tag: 'p', 
-                style: { marginBottom: '15px' },
+                text: 'Enter your name, Captain:'
+            }),
+            ce({
+                tag: 'input',
+                type: 'text',
+                id: 'captain-name-input',
+                className: 'input-text',
+                value: 'Captain Nova'
+            })
+        ]
+    });
+    
+    // Right column: Skill distribution
+    const rightColumn = ce({
+        children: [
+            ce({ 
+                tag: 'h3', 
+                text: 'Skill Distribution',
+                style: { marginBottom: '1rem' }
+            }),
+            ce({ 
+                tag: 'p', 
+                id: 'skill-points-display',
+                style: { marginBottom: '0.938rem' },
                 text: `You have ${window.gameState.captain.skillPoints} skill points to distribute.`
             }),
             ce({ tag: 'div', id: 'skill-selection-container' })
         ]
     });
     
+    const layout = createTwoColumnLayout({ leftColumn, rightColumn });
+    
     showMenu({
-        title: 'SKILL SELECTION',
-        content: content.outerHTML,
+        title: 'CHARACTER CREATION',
+        content: layout.outerHTML,
         buttons: []
     });
     
@@ -159,9 +166,9 @@ function renderSkillButtons() {
                     renderSkillSelectionTable();
                     
                     // Update skill points display
-                    const menu = document.querySelector('.menu-content p');
-                    if (menu) {
-                        menu.textContent = `You have ${window.gameState.captain.skillPoints} skill points to distribute.`;
+                    const pointsDisplay = document.getElementById('skill-points-display');
+                    if (pointsDisplay) {
+                        pointsDisplay.textContent = `You have ${window.gameState.captain.skillPoints} skill points to distribute.`;
                     }
                 }
             },
@@ -174,11 +181,18 @@ function renderSkillButtons() {
     // Add Begin Journey and Back buttons
     buttonsDiv.appendChild(createButton({
         text: 'Begin Journey',
-        action: () => showMainMenu()
+        action: () => {
+            // Save the captain name before starting
+            const nameInput = document.getElementById('captain-name-input');
+            if (nameInput && nameInput.value.trim()) {
+                window.gameState.captain.name = nameInput.value.trim();
+            }
+            showMainMenu();
+        }
     }));
     
     buttonsDiv.appendChild(createButton({
         text: 'Back',
-        action: () => startNewGame()
+        action: () => showTitleScreen()
     }));
 }

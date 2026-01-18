@@ -374,7 +374,7 @@ function switchTab(button) {
 /**
  * Create top-left icon buttons
  */
-export function createTopButtons(showComputerScreen, showOptionsModal) {
+export function createTopButtons(callbacks = {}) {
     const existing = document.querySelector('.top-right-buttons');
     if (existing) existing.remove();
     
@@ -383,20 +383,50 @@ export function createTopButtons(showComputerScreen, showOptionsModal) {
         children: [
             ce({
                 tag: 'button',
-                className: 'icon-button',
-                html: '&#x1F4BB;&#xFE0E;', // Computer emoji with text variation selector for monochrome
-                attrs: { title: 'Computer' },
-                onclick: showComputerScreen
+                className: window.currentViewMode === 'game' ? 'icon-button active' : 'icon-button',
+                html: '&#x1F680;&#xFE0E;', // Rocket/spaceship emoji
+                attrs: { title: 'Game', 'data-mode': 'game' },
+                onclick: () => switchViewMode('game', callbacks)
             }),
             ce({
                 tag: 'button',
-                className: 'icon-button',
+                className: window.currentViewMode === 'computer' ? 'icon-button active' : 'icon-button',
+                html: '&#x1F4BB;&#xFE0E;', // Computer emoji with text variation selector for monochrome
+                attrs: { title: 'Computer', 'data-mode': 'computer' },
+                onclick: () => switchViewMode('computer', callbacks)
+            }),
+            ce({
+                tag: 'button',
+                className: window.currentViewMode === 'options' ? 'icon-button active' : 'icon-button',
                 html: '&#9881;&#xFE0E;', // Settings gear with text variation selector
-                attrs: { title: 'Options' },
-                onclick: showOptionsModal
+                attrs: { title: 'Options', 'data-mode': 'options' },
+                onclick: () => switchViewMode('options', callbacks)
             })
         ]
     });
     
     document.body.appendChild(buttonsContainer);
+}
+
+/**
+ * Switch between game, computer, and options views
+ */
+function switchViewMode(mode, callbacks) {
+    if (window.currentViewMode === mode) return; // Already in this mode
+    
+    window.currentViewMode = mode;
+    
+    // Update button states
+    document.querySelectorAll('.top-right-buttons .icon-button').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+    });
+    
+    // Call the appropriate callback
+    if (mode === 'game' && callbacks.showGame) {
+        callbacks.showGame();
+    } else if (mode === 'computer' && callbacks.showComputer) {
+        callbacks.showComputer();
+    } else if (mode === 'options' && callbacks.showOptions) {
+        callbacks.showOptions();
+    }
 }

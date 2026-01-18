@@ -74,6 +74,12 @@
     transform: scale(0.95);
 }
 
+.icon-button.active {
+    background: rgba(0, 153, 255, 0.3);
+    box-shadow: 0 0 1.5rem rgba(0, 153, 255, 0.8);
+    border-color: #0bf;
+}
+
 /* Button Container */
 .button-container {
     display: flex;

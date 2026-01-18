@@ -1,25 +1,27 @@
-import { showModal, createTabs, createDataTable, createButton, ce } from '../ui.js';
+import { Menu, createDataTable, createButton, ce } from '../ui.js';
 import { SKILLS, SKILL_NAMES, MAX_SKILL_LEVEL } from '../defs/SKILLS.js';
 
-export function showComputerScreen() {
-    const tabs = [
-        { label: 'Captain Info', content: getCaptainInfoContent() },
-        { label: 'Ship Status', content: getShipStatusContent() },
-        { label: 'Skills', content: getSkillsContent(), onActivate: renderSkillsTab }
-    ];
-    
-    const content = ce({
-        className: 'menu-content',
-        children: [
-            createTabs(tabs)
+export function showComputerMenu() {
+    const menu = new Menu({
+        tabs: [
+            { 
+                label: 'Captain Info', 
+                content: getCaptainInfoContent() 
+            },
+            { 
+                label: 'Ship Status', 
+                content: getShipStatusContent() 
+            },
+            { 
+                label: 'Skills', 
+                content: getSkillsContent(), 
+                onActivate: renderSkillsTab 
+            }
         ]
     });
     
-    showModal({
-        title: 'Ship Computer',
-        content,
-        buttons: [{ text: 'Close', action: 'close' }]
-    });
+    menu.render();
+    window.currentMenu = menu;
 }
 
 function getCaptainInfoContent() {
@@ -50,13 +52,21 @@ function getCaptainInfoContent() {
 }
 
 function getSkillsContent() {
-    return `
-        <div class="stats-group">
-            <p style="margin-bottom: 15px;">Skill Points Available: <span id="skill-points-display">${window.gameState.captain.skillPoints}</span></p>
-            <div id="skills-table-container"></div>
-            <div id="skills-buttons" class="button-container" style="margin-top: 15px;"></div>
-        </div>
-    `;
+    return ce({
+        children: [
+            ce({ 
+                tag: 'p', 
+                style: { marginBottom: '0.938rem' },
+                text: 'Skill Points Available: '
+            }),
+            ce({
+                tag: 'span',
+                id: 'skill-points-display',
+                text: window.gameState.captain.skillPoints.toString()
+            }),
+            ce({ tag: 'div', id: 'skills-table-container', style: { marginTop: '0.938rem' } })
+        ]
+    }).outerHTML;
 }
 
 function renderSkillsTab() {
@@ -92,16 +102,16 @@ function renderSkillsTab() {
 }
 
 function renderSkillsButtons() {
-    const buttonsDiv = document.getElementById('skills-buttons');
-    if (!buttonsDiv) return;
+    const buttonContainer = window.currentMenu?.getButtonContainer();
+    if (!buttonContainer) return;
     
-    buttonsDiv.innerHTML = '';
+    buttonContainer.innerHTML = '';
     
     if (window.selectedComputerSkill) {
         const currentLevel = window.gameState.captain.skills[window.selectedComputerSkill];
         const canIncrease = window.gameState.captain.skillPoints > 0 && currentLevel < MAX_SKILL_LEVEL;
         
-        buttonsDiv.appendChild(createButton({
+        buttonContainer.appendChild(createButton({
             text: `Increase ${SKILLS[window.selectedComputerSkill].name}`,
             action: () => {
                 if (window.gameState.captain.increaseSkill(window.selectedComputerSkill)) {
