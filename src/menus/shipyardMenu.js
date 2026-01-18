@@ -45,6 +45,7 @@ export function renderShipyardTable() {
         const yourShipsTable = createDataTable({
             id: 'your-ships',
             scrollable: true,
+            autoSelectFirst: true,
             headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Status'],
             rows: window.gameState.ownedShips.map((ship, idx) => ({
                 cells: [
@@ -80,6 +81,7 @@ export function renderShipyardTable() {
         const shipsTable = createDataTable({
             id: 'ships-for-sale',
             scrollable: true,
+            autoSelectFirst: true,
             headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Price'],
             rows: shipsForSale.map((ship, idx) => {
                 const basePrice = ship.value;
@@ -157,10 +159,10 @@ function renderShipyardButtons() {
         const needsRepair = damageAmount > 0;
         
         buttonsDiv.appendChild(createButton({
-            text: needsRepair ? `Repair Hull (${repairCost} cr)` : 'Hull at Full Integrity',
+            text: `Repair Hull (${repairCost} cr)`,
             action: () => repairShip(index),
             disabled: !needsRepair || !canAffordRepair,
-            disabledReason: !needsRepair ? 'No repairs needed' : 
+            disabledReason: !needsRepair ? 'Hull at full integrity' : 
                           !canAffordRepair ? `Need ${repairCost} credits (have ${window.gameState.captain.credits})` : ''
         }));
         
@@ -171,10 +173,10 @@ function renderShipyardButtons() {
         const needsFuel = fuelNeeded > 0;
         
         buttonsDiv.appendChild(createButton({
-            text: needsFuel ? `Refuel (${refuelCost} cr)` : 'Fuel Tank Full',
+            text: `Refuel (${refuelCost} cr)`,
             action: () => refuelShip(index),
             disabled: !needsFuel || !canAffordRefuel,
-            disabledReason: !needsFuel ? 'Tank is full' :
+            disabledReason: !needsFuel ? 'Fuel tank full' :
                           !canAffordRefuel ? `Need ${refuelCost} credits (have ${window.gameState.captain.credits})` : ''
         }));
         

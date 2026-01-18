@@ -292,6 +292,14 @@ export function createDataTable(params = {}) {
         ]
     });
     
+    // Auto-select first row if specified and rows exist
+    if (params.autoSelectFirst && bodyRows.length > 0) {
+        setTimeout(() => {
+            bodyRows[0].classList.add('selected');
+            if (params.onSelect) params.onSelect(params.rows[0], 0);
+        }, 0);
+    }
+    
     return params.scrollable ? ce({
         className: 'table-container',
         children: [table]

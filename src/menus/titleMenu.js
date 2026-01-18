@@ -123,6 +123,7 @@ function renderSkillSelectionTable() {
     const skillTable = createDataTable({
         id: 'skill-selection-table',
         scrollable: true,
+        autoSelectFirst: true,
         headers: ['Skill', 'Level', 'Description'],
         rows: SKILL_NAMES.map(skillName => {
             const skill = SKILLS[skillName];

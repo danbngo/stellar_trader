@@ -387,33 +387,6 @@ function completeJourney() {
     window.selectedDestination = null;
     
     // Check quests after arrival
-    checkAndShowCompletedQuests();
-    
     // Return to main menu
     showMainMenu();
-}
-
-function checkAndShowCompletedQuests() {
-    const completedQuests = window.gameState.checkQuests();
-    
-    if (completedQuests.length > 0) {
-        const questList = completedQuests.map(q => 
-            `<div style="margin: 0.5rem 0; padding: 0.5rem; border: 1px solid #0f0; border-radius: 0.25rem;">
-                <strong style="color: #0f0;">${q.title}</strong>
-                <div style="color: #888; font-size: 0.9em;">${q.description}</div>
-                <div style="color: #09f; margin-top: 0.25rem;">Reward: ${q.expReward} EXP</div>
-            </div>`
-        ).join('');
-        
-        showModal({
-            title: 'Quest Completed!',
-            content: `
-                <div style="color: #0f0; margin-bottom: 1rem;">
-                    <strong>Congratulations! You completed ${completedQuests.length} quest${completedQuests.length > 1 ? 's' : ''}!</strong>
-                </div>
-                ${questList}
-            `,
-            buttons: [{ text: 'Continue', action: 'close' }]
-        });
-    }
 }

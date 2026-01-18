@@ -99,6 +99,7 @@ function renderTradeInfo() {
     const tradeTable = createDataTable({
         id: 'trade-info-table',
         scrollable: true,
+        autoSelectFirst: true,
         headers,
         rows,
         onSelect: (rowData) => {

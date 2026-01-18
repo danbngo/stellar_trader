@@ -95,29 +95,33 @@ export class GameState {
         
         const startingQuest = new Quest({
             title: 'Supply Run',
-            description: 'Collect essential supplies for your journey: 10 food, 10 water, and 10 air.',
+            description: 'Collect and deliver essential supplies for your journey: 100 food, 100 water, and 100 air.',
             cargoAmounts: {
-                food: 10,
-                water: 10,
-                air: 10
+                food: 100,
+                water: 100,
+                air: 100
             },
             expirationDate: expirationDate,
-            expReward: 100
+            expReward: 100,
+            creditsReward: 10000
         });
         
         this.quests.push(startingQuest);
     }
     
     /**
-     * Check and complete quests based on current cargo
+     * Check and complete quests based on donations
      */
     checkQuests() {
         const completedQuests = [];
         
         this.quests.forEach(quest => {
-            if (!quest.isFulfilled && quest.checkFulfilled(this.ship.cargo)) {
+            if (!quest.isFulfilled && quest.checkFulfilled()) {
                 quest.fulfill();
                 this.captain.grantExperience(quest.expReward);
+                if (quest.creditsReward > 0) {
+                    this.addCredits(quest.creditsReward);
+                }
                 completedQuests.push(quest);
             }
         });

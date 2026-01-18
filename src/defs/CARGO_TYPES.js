@@ -5,9 +5,9 @@ export class CargoType {
     }
 }
 
-export const AIR = new CargoType('air', 5);
-export const WATER = new CargoType('water', 10);
-export const FOOD = new CargoType('food', 20);
+export const AIR = new CargoType('air', 25);
+export const WATER = new CargoType('water', 50);
+export const FOOD = new CargoType('food', 100);
 
 export const CARGO_TYPES = {
     air: AIR,

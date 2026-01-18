@@ -2,6 +2,8 @@ import { ce, createDataTable, createButton, showModal } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 import { CARGO_TYPES } from '../defs/CARGO_TYPES.js';
 
+let marketMode = 'buy'; // 'buy' or 'sell'
+
 // Calculate effective fees after barter skill
 function getEffectiveFees(system) {
     const barterLevel = window.gameState.captain.skills.barter;
@@ -48,20 +50,22 @@ export function renderMarketTable(system) {
     
     leftCol.innerHTML = '';
     rightCol.innerHTML = '';
-    buttonsDiv.innerHTML = '';
     
     const goods = ['food', 'water', 'air'];
     
-    const marketSection = ce({
-        className: 'stats-group',
-        children: [
-            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Market Prices' })
-        ]
-    });
+    if (marketMode === 'buy') {
+        // Show market prices (for buying)
+        const marketSection = ce({
+            className: 'stats-group',
+            children: [
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Market Prices' })
+            ]
+        });
     
     const marketTable = createDataTable({
         id: 'market-goods',
         scrollable: true,
+        autoSelectFirst: true,
         headers: ['Commodity', 'Buy Price', 'Sell Price', 'Base', 'Available'],
         rows: goods.map(good => {
             const cargoType = CARGO_TYPES[good];
@@ -88,57 +92,74 @@ export function renderMarketTable(system) {
     
     marketSection.appendChild(marketTable);
     leftCol.appendChild(marketSection);
-    
-    const cargoSection = ce({
-        className: 'stats-group',
-        children: [
-            ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Cargo' })
-        ]
-    });
-    
-    const cargoItems = Object.entries(window.gameState.ship.cargo);
-    
-    if (cargoItems.length > 0) {
-        const cargoTable = createDataTable({
-            id: 'cargo-goods',
-            scrollable: true,
-            headers: ['Commodity', 'Quantity', 'Value'],
-            rows: cargoItems.map(([good, qty]) => {
-                const sellPrice = getSellPrice(system.marketPrices[good], system);
-                return {
-                    cells: [
-                        good.charAt(0).toUpperCase() + good.slice(1),
-                        `${qty} units`,
-                        `${sellPrice * qty} cr`
-                    ],
-                    data: { good, quantity: qty, sellPrice }
-                };
-            }),
-            onSelect: (rowData) => {
-                window.selectedCargoGood = rowData.data;
-                renderMarketButtons(system);
-            }
+    } else {
+        // Show cargo (for selling)
+        const cargoSection = ce({
+            className: 'stats-group',
+            children: [
+                ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Your Cargo' })
+            ]
         });
         
-        cargoSection.appendChild(cargoTable);
-    } else {
-        cargoSection.appendChild(ce({
-            tag: 'p',
-            style: { textAlign: 'center', color: '#888', padding: '20px' },
-            text: 'Cargo hold is empty'
-        }));
+        const cargoItems = Object.entries(window.gameState.ship.cargo);
+        
+        if (cargoItems.length > 0) {
+            const cargoTable = createDataTable({
+                id: 'cargo-goods',
+                scrollable: true,
+                autoSelectFirst: true,
+                headers: ['Commodity', 'Quantity', 'Value'],
+                rows: cargoItems.map(([good, qty]) => {
+                    const sellPrice = getSellPrice(system.marketPrices[good], system);
+                    return {
+                        cells: [
+                            good.charAt(0).toUpperCase() + good.slice(1),
+                            `${qty} units`,
+                            `${sellPrice * qty} cr`
+                        ],
+                        data: { good, quantity: qty, sellPrice }
+                    };
+                }),
+                onSelect: (rowData) => {
+                    window.selectedCargoGood = rowData.data;
+                    window.selectedMarketGood = null;
+                    renderMarketButtons(system);
+                }
+            });
+            
+            cargoSection.appendChild(cargoTable);
+        } else {
+            cargoSection.appendChild(ce({
+                tag: 'p',
+                style: { textAlign: 'center', color: '#888', padding: '20px' },
+                text: 'Cargo hold is empty'
+            }));
+        }
+        
+        leftCol.appendChild(cargoSection);
     }
-    
-    rightCol.appendChild(cargoSection);
     
     renderMarketButtons(system);
 }
 
 function renderMarketButtons(system) {
-    const buttonsDiv = document.getElementById('market-buttons');
+    const buttonsDiv = window.currentMenu?.getButtonContainer();
     if (!buttonsDiv) return;
     
     buttonsDiv.innerHTML = '';
+    
+    // Add toggle button first
+    const toggleBtn = createButton({
+        id: 'market-mode-toggle',
+        text: marketMode === 'buy' ? 'Show Your Cargo' : 'Show Market Prices',
+        action: () => {
+            marketMode = marketMode === 'buy' ? 'sell' : 'buy';
+            window.selectedMarketGood = null;
+            window.selectedCargoGood = null;
+            renderMarketTable(system);
+        }
+    });
+    buttonsDiv.appendChild(toggleBtn);
     
     if (window.selectedMarketGood) {
         const { good, buyPrice, sellPrice, available } = window.selectedMarketGood;
@@ -198,7 +219,13 @@ function renderMarketButtons(system) {
     }
     
     if (!window.selectedMarketGood && !window.selectedCargoGood) {
-        buttonsDiv.innerHTML = '<p style="color: #888; text-align: center; width: 100%;">Select a commodity to trade</p>';
+        // Don't clear the toggle button - just add message after it
+        const messageP = ce({
+            tag: 'p',
+            style: { color: '#888', textAlign: 'center', width: '100%', marginTop: '1rem' },
+            text: 'Select a commodity to trade'
+        });
+        buttonsDiv.appendChild(messageP);
     }
 }
 
@@ -209,34 +236,6 @@ function buyGood(good, price, quantity, system) {
     if (available >= quantity && window.gameState.spendCredits(price * quantity) && window.gameState.addCargo(good, quantity)) {
         currentSystem.cargo[good] -= quantity;
         renderMarketTable(currentSystem);
-        
-        // Check quests after purchasing cargo
-        checkAndShowCompletedQuests();
-    }
-}
-
-function checkAndShowCompletedQuests() {
-    const completedQuests = window.gameState.checkQuests();
-    
-    if (completedQuests.length > 0) {
-        const questList = completedQuests.map(q => 
-            `<div style="margin: 0.5rem 0; padding: 0.5rem; border: 1px solid #0f0; border-radius: 0.25rem;">
-                <strong style="color: #0f0;">${q.title}</strong>
-                <div style="color: #888; font-size: 0.9em;">${q.description}</div>
-                <div style="color: #09f; margin-top: 0.25rem;">Reward: ${q.expReward} EXP</div>
-            </div>`
-        ).join('');
-        
-        showModal({
-            title: 'Quest Completed!',
-            content: `
-                <div style="color: #0f0; margin-bottom: 1rem;">
-                    <strong>Congratulations! You completed ${completedQuests.length} quest${completedQuests.length > 1 ? 's' : ''}!</strong>
-                </div>
-                ${questList}
-            `,
-            buttons: [{ text: 'Continue', action: 'close' }]
-        });
     }
 }
 
