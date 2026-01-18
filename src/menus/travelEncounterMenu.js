@@ -1,4 +1,4 @@
-import { ce, createButton, createTwoColumnLayout, createDataTable, showMenu, showModal, createTabs, statColorSpan } from '../ui.js';
+import { ce, createButton, createTwoColumnLayout, createDataTable, showMenu, createTabs, statColorSpan } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 import { ProgressBar } from '../classes/ProgressBar.js';
 
@@ -39,6 +39,11 @@ export function showTravelEncounterMenu(destIndex, destination, duration, piracy
     avgPiracy = piracy;
     avgPolice = police;
     avgMerchants = merchants;
+    
+    // Store reference to resolveEncounter so encounter handlers can access it
+    window.travelEncounterMenuInstance = {
+        resolveEncounter
+    };
     
     renderTravelScreen();
 }
@@ -87,6 +92,7 @@ function getJourneyContent() {
 
 function getEncounterContent() {
     return `
+        <div id="encounter-transmission" style="background: #112; border: 1px solid #09f; border-radius: 4px; padding: 15px; margin-bottom: 20px; font-family: monospace; color: #0ff; min-height: 80px; display: none;"></div>
         <div id="encounter-content-columns"></div>
         <div id="encounter-buttons" class="button-container"></div>
     `;
@@ -190,17 +196,27 @@ function renderJourneyContent() {
 
 function renderEncounterContent() {
     const container = document.getElementById('encounter-content-columns');
+    const transmissionDiv = document.getElementById('encounter-transmission');
     if (!container) return;
     
     container.innerHTML = '';
     
     if (!activeEncounter) {
+        if (transmissionDiv) transmissionDiv.style.display = 'none';
         container.appendChild(ce({
             tag: 'p',
             style: { textAlign: 'center', color: '#888', padding: '40px' },
             text: 'No active encounters'
         }));
         return;
+    }
+    
+    // Display transmission if available
+    if (transmissionDiv && activeEncounter.transmissionText) {
+        transmissionDiv.style.display = 'block';
+        transmissionDiv.innerHTML = activeEncounter.transmissionText;
+    } else if (transmissionDiv) {
+        transmissionDiv.style.display = 'none';
     }
     
     // Player ship rows
@@ -310,11 +326,14 @@ function renderEncounterButtons() {
     
     buttonsDiv.innerHTML = '';
     
-    if (activeEncounter) {
-        buttonsDiv.appendChild(createButton({
-            text: 'Ignore and Continue',
-            action: resolveEncounter
-        }));
+    if (activeEncounter && activeEncounter.actions) {
+        // Render all available actions for this encounter
+        activeEncounter.actions.forEach(action => {
+            buttonsDiv.appendChild(createButton({
+                text: action.text,
+                action: action.handler
+            }));
+        });
     }
 }
 
@@ -377,9 +396,6 @@ function resolveEncounter() {
     // Render journey content after switching tabs
     renderJourneyContent();
     
-    // Check quests after encounter
-    checkAndShowCompletedQuests();
-    
     // Resume journey automatically
     if (currentDay < tripDuration) {
         isPaused = false;
@@ -434,17 +450,17 @@ function triggerEncounter() {
     renderJourneyContent();
     renderEncounterContent();
     
+    // Call onGreet to set up encounter data
+    if (activeEncounter && activeEncounter.encounterType && activeEncounter.encounterType.onGreet) {
+        const encounterData = activeEncounter.encounterType.onGreet(activeEncounter, window.gameState.ship);
+        activeEncounter.transmissionText = encounterData.transmissionText;
+        activeEncounter.actions = encounterData.actions;
+    }
+    
     // Switch to encounter tab
     const encounterTab = document.querySelector('.tab-button[data-tab="encounter"]');
     if (encounterTab) {
         encounterTab.click();
-        
-        // Call onGreet after switching to encounter tab
-        setTimeout(() => {
-            if (activeEncounter && activeEncounter.encounterType && activeEncounter.encounterType.onGreet) {
-                activeEncounter.encounterType.onGreet(activeEncounter, window.gameState.ship);
-            }
-        }, 100);
     }
 }
 
