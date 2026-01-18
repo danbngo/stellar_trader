@@ -4,6 +4,8 @@ import { showMainMenu } from './mainMenu.js';
 import { generatePirateShip, generatePoliceShip, generateMerchantShip } from '../generators/shipGenerators.js';
 import { showTravelEncounterMenu } from './travelEncounterMenu.js';
 
+let mapZoom = 1.0; // Current zoom level (0.5 to 2.0)
+
 export function getTravelContent() {
     const leftColumn = '<div id="travel-map-container"></div>';
     const rightColumn = `
@@ -71,9 +73,12 @@ export function renderTravelTab() {
         resizeObserver.observe(canvas);
     }
     
-    updateTravelMap();
-    updateDestinationInfo();
-    renderTravelButtons(); // Render buttons to show selected system on tab activation
+    // Delay initial render to ensure canvas has proper dimensions
+    setTimeout(() => {
+        updateTravelMap();
+        updateDestinationInfo();
+        renderTravelButtons(); // Render buttons to show selected system on tab activation
+    }, 1);
 }
 
 function updateTravelMap() {
@@ -97,9 +102,60 @@ function updateTravelMap() {
     const centerX = canvasRect.width / 2;
     const centerY = canvasRect.height / 2;
     
+    // Set SVG viewBox to match canvas dimensions for proper scaling
+    svg.setAttribute('viewBox', `0 0 ${canvasRect.width} ${canvasRect.height}`);
+    
     // Store positions for line drawing
     const systemPositions = new Map();
     
+    // First pass: calculate all positions
+    window.gameState.starSystems.forEach((system, index) => {
+        // Calculate relative position to center with zoom
+        const relativeX = (system.x - currentSystem.x) * 20 * mapZoom;
+        const relativeY = (system.y - currentSystem.y) * 20 * mapZoom;
+        
+        const left = centerX + relativeX;
+        const top = centerY + relativeY;
+        
+        systemPositions.set(system, { left, top, index });
+    });
+    
+    // Draw neighbor connection lines (thin gray lines between nearby systems)
+    const drawnConnections = new Set(); // Track connections to avoid duplicates
+    const neighborDistance = 8; // Max distance to be considered neighbors
+    
+    window.gameState.starSystems.forEach((system1, index1) => {
+        const pos1 = systemPositions.get(system1);
+        
+        window.gameState.starSystems.forEach((system2, index2) => {
+            if (index1 >= index2) return; // Skip self and already-drawn pairs
+            
+            const distance = calculateDistance(system1, system2);
+            if (distance <= neighborDistance) {
+                const pos2 = systemPositions.get(system2);
+                
+                // Check if at least one system is visible (on screen)
+                const isPos1Visible = pos1.left >= 0 && pos1.left <= canvasRect.width && 
+                                     pos1.top >= 0 && pos1.top <= canvasRect.height;
+                const isPos2Visible = pos2.left >= 0 && pos2.left <= canvasRect.width && 
+                                     pos2.top >= 0 && pos2.top <= canvasRect.height;
+                
+                if (isPos1Visible || isPos2Visible) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', pos1.left.toString());
+                    line.setAttribute('y1', pos1.top.toString());
+                    line.setAttribute('x2', pos2.left.toString());
+                    line.setAttribute('y2', pos2.top.toString());
+                    line.setAttribute('stroke', '#444');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('opacity', '0.3');
+                    svg.appendChild(line);
+                }
+            }
+        });
+    });
+    
+    // Second pass: draw system dots and labels
     window.gameState.starSystems.forEach((system, index) => {
         const isCurrent = index === window.gameState.currentSystemIndex;
         const isVisited = window.gameState.visitedStarSystems.has(system);
@@ -108,14 +164,9 @@ function updateTravelMap() {
         
         const { canReach, fuelNeeded, distance } = window.gameState.canReachSystem(system);
         
-        // Calculate relative position to center
-        const relativeX = (system.x - currentSystem.x) * 20;
-        const relativeY = (system.y - currentSystem.y) * 20;
-        
-        const left = centerX + relativeX;
-        const top = centerY + relativeY;
-        
-        systemPositions.set(system, { left, top });
+        const pos = systemPositions.get(system);
+        const left = pos.left;
+        const top = pos.top;
         
         let systemClass = 'travel-system';
         if (isCurrent) {
@@ -181,16 +232,6 @@ function updateTravelMap() {
             line.setAttribute('x2', destPos.left.toString());
             line.setAttribute('y2', destPos.top.toString());
             line.setAttribute('style', `stroke:${strokeColor};stroke-width:2;stroke-dasharray:5,5`);
-            
-            console.log('Line created:', line);
-            console.log('Line attributes:', {
-                x1: line.getAttribute('x1'),
-                y1: line.getAttribute('y1'),
-                x2: line.getAttribute('x2'),
-                y2: line.getAttribute('y2'),
-                stroke: line.getAttribute('stroke'),
-                strokeWidth: line.getAttribute('stroke-width')
-            });
             
             svg.appendChild(line);
             console.log('Line appended to SVG. SVG children count:', svg.children.length);
@@ -295,6 +336,25 @@ function renderTravelButtons() {
     if (!buttonsDiv) return;
     
     buttonsDiv.innerHTML = '';
+    
+    // Zoom buttons (always visible)
+    buttonsDiv.appendChild(createButton({
+        text: 'Zoom In',
+        action: () => {
+            mapZoom = Math.min(2.0, mapZoom + 0.25);
+            updateTravelMap();
+        },
+        disabled: mapZoom >= 2.0
+    }));
+    
+    buttonsDiv.appendChild(createButton({
+        text: 'Zoom Out',
+        action: () => {
+            mapZoom = Math.max(0.5, mapZoom - 0.25);
+            updateTravelMap();
+        },
+        disabled: mapZoom <= 0.5
+    }));
     
     if (window.selectedDestination) {
         const { system, index, canReach, isVisited, isSeen } = window.selectedDestination;

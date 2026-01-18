@@ -83,7 +83,7 @@ export class GameState {
         const dx = destinationSystem.x - currentSystem.x;
         const dy = destinationSystem.y - currentSystem.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const fuelNeeded = Math.ceil(distance * 10);
+        const fuelNeeded = Math.ceil(distance * 15);
         const canReach = this.ship.fuel >= fuelNeeded;
         
         return { canReach, fuelNeeded, distance };
