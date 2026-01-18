@@ -5,7 +5,7 @@ export function showOptionsMenu() {
     const menu = new Menu({
         tabs: [
             {
-                label: 'Game Options',
+                label: 'Exit',
                 content: getOptionsContent(),
                 onActivate: renderOptionsButtons
             }
@@ -17,17 +17,7 @@ export function showOptionsMenu() {
 }
 
 function getOptionsContent() {
-    return ce({
-        className: 'stats-group',
-        style: { textAlign: 'center', padding: '1.25rem' },
-        children: [
-            ce({
-                tag: 'p',
-                text: 'Game Options',
-                style: { marginBottom: '1rem' }
-            })
-        ]
-    }).outerHTML;
+    return ''
 }
 
 function renderOptionsButtons() {

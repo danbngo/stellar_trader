@@ -38,7 +38,7 @@ button,
     width: 95vw;
     max-height: 80vh;
     box-shadow: 0 0 1.25rem rgba(0, 153, 255, 0.3);
-    margin-top: 2.5rem;
+    margin-top: 4.5rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;

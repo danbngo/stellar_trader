@@ -75,9 +75,18 @@
 }
 
 .icon-button.active {
-    background: rgba(0, 153, 255, 0.3);
-    box-shadow: 0 0 1.5rem rgba(0, 153, 255, 0.8);
+    background: rgba(0, 153, 255, 0.4);
+    box-shadow: 0 0 1.5rem rgba(0, 153, 255, 1), 
+                inset 0 0 1rem rgba(0, 153, 255, 0.3);
     border-color: #0bf;
+    border-width: 3px;
+    color: #0ff;
+    transform: scale(1.05);
+}
+
+.icon-button.active:hover {
+    background: rgba(0, 153, 255, 0.45);
+    transform: scale(1.08);
 }
 
 /* Button Container */

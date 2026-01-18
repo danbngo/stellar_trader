@@ -8,7 +8,7 @@
 body {
     font-family: 'Courier New', 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Segoe UI Symbol', monospace;
     background: #0e0c24;
-    color: #09f;
+    color: rgb(0, 225, 255);
     overflow: hidden;
     font-variant-emoji: text;
 }
