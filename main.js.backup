@@ -1,0 +1,1981 @@
+// ===== UTILITY FUNCTIONS =====
+
+/**
+ * Create Element - Creates an HTML element with specified properties
+ * @param {Object} params - Configuration object for the element
+ * @param {string} params.tag - HTML tag name (default: 'div')
+ * @param {string} params.className - CSS class name(s)
+ * @param {string} params.id - Element ID
+ * @param {string} params.text - Text content
+ * @param {string} params.html - HTML content
+ * @param {Object} params.attrs - Object of attribute key-value pairs
+ * @param {Object} params.style - Object of CSS style properties
+ * @param {Function} params.onclick - Click event handler
+ * @param {HTMLElement[]} params.children - Array of child elements
+ * @returns {HTMLElement}
+ */
+function ce(params = {}) {
+    const element = document.createElement(params.tag || 'div');
+    
+    if (params.className) element.className = params.className;
+    if (params.id) element.id = params.id;
+    if (params.text) element.textContent = params.text;
+    if (params.html) element.innerHTML = params.html;
+    
+    if (params.attrs) {
+        Object.entries(params.attrs).forEach(([key, value]) => {
+            element.setAttribute(key, value);
+        });
+    }
+    
+    if (params.style) {
+        Object.entries(params.style).forEach(([key, value]) => {
+            element.style[key] = value;
+        });
+    }
+    
+    if (params.onclick) element.onclick = params.onclick;
+    
+    if (params.children) {
+        params.children.forEach(child => {
+            if (child) element.appendChild(child);
+        });
+    }
+    
+    return element;
+}
+
+/**
+ * Display a menu with title, content, and buttons
+ * @param {Object} params - Menu configuration
+ * @param {string} params.title - Menu title
+ * @param {string} params.content - Menu content (text or HTML)
+ * @param {Array} params.buttons - Array of button objects {text, action}
+ */
+function showMenu(params = {}) {
+    const container = document.getElementById('game-container');
+    container.innerHTML = '';
+    
+    const buttons = params.buttons || [];
+    const buttonElements = buttons.map(btn => 
+        ce({
+            tag: 'button',
+            className: 'menu-button',
+            text: btn.text,
+            onclick: btn.action
+        })
+    );
+    
+    const menu = ce({
+        className: 'menu',
+        children: [
+            params.title ? ce({
+                className: 'menu-title',
+                text: params.title
+            }) : null,
+            params.content ? ce({
+                className: 'menu-content',
+                html: params.content
+            }) : null,
+            ce({
+                className: 'menu-buttons',
+                children: buttonElements
+            })
+        ].filter(Boolean)
+    });
+    
+    container.appendChild(menu);
+}
+
+/**
+ * Create a data table with selectable rows
+ * @param {Object} params - Table configuration
+ * @param {Array} params.headers - Array of header strings
+ * @param {Array} params.rows - Array of row data objects
+ * @param {Function} params.onSelect - Callback when row is selected (receives row data and index)
+ * @param {string} params.id - Table ID for tracking selection
+ * @returns {HTMLElement}
+ */
+function createDataTable(params = {}) {
+    const tableId = params.id || 'table-' + Math.random().toString(36).substr(2, 9);
+    
+    const headerRow = ce({
+        tag: 'tr',
+        children: params.headers.map(header => 
+            ce({ tag: 'th', text: header })
+        )
+    });
+    
+    const bodyRows = params.rows.map((rowData, index) => {
+        const row = ce({
+            tag: 'tr',
+            attrs: { 'data-index': index },
+            children: rowData.cells.map(cell => 
+                ce({ tag: 'td', html: cell })
+            ),
+            onclick: (e) => {
+                // Clear selection in ALL tables
+                document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('selected'));
+                
+                // Select this row
+                e.target.closest('tr').classList.add('selected');
+                
+                // Call callback
+                if (params.onSelect) {
+                    params.onSelect(rowData, index);
+                }
+            }
+        });
+        return row;
+    });
+    
+    const table = ce({
+        tag: 'table',
+        className: 'data-table',
+        id: tableId,
+        children: [
+            ce({
+                tag: 'thead',
+                children: [headerRow]
+            }),
+            ce({
+                tag: 'tbody',
+                children: bodyRows
+            })
+        ]
+    });
+    
+    return params.scrollable ? ce({
+        className: 'table-container',
+        children: [table]
+    }) : table;
+}
+
+/**
+ * Create a button with optional disabled state and tooltip
+ * @param {Object} params - Button configuration
+ * @param {string} params.text - Button text
+ * @param {Function} params.action - Click handler
+ * @param {boolean} params.disabled - Whether button is disabled
+ * @param {string} params.disabledReason - Tooltip text when disabled
+ * @param {string} params.className - Additional CSS classes
+ * @returns {HTMLElement}
+ */
+function createButton(params = {}) {
+    const button = ce({
+        tag: 'button',
+        className: params.className || 'menu-button',
+        text: params.text,
+        onclick: params.disabled ? null : params.action
+    });
+    
+    if (params.disabled) {
+        button.disabled = true;
+    }
+    
+    if (params.disabled && params.disabledReason) {
+        const wrapper = ce({
+            className: 'tooltip',
+            children: [
+                button,
+                ce({
+                    className: 'tooltip-text',
+                    text: params.disabledReason
+                })
+            ]
+        });
+        return wrapper;
+    }
+    
+    return button;
+}
+
+/**
+ * Create a two-column layout
+ * @param {Object} params - Layout configuration
+ * @param {string|HTMLElement} params.leftColumn - Content for left column
+ * @param {string|HTMLElement} params.rightColumn - Content for right column
+ * @returns {HTMLElement}
+ */
+function createTwoColumnLayout(params = {}) {
+    const leftCol = ce({
+        className: 'column',
+        ...(typeof params.leftColumn === 'string' ? { html: params.leftColumn } : { children: [params.leftColumn] })
+    });
+    
+    const rightCol = ce({
+        className: 'column',
+        ...(typeof params.rightColumn === 'string' ? { html: params.rightColumn } : { children: [params.rightColumn] })
+    });
+    
+    return ce({
+        className: 'two-column-layout',
+        children: [leftCol, rightCol]
+    });
+}
+
+/**
+ * Show a modal dialog
+ * @param {Object} params - Modal configuration
+ * @param {string} params.title - Modal title
+ * @param {string} params.content - Modal content
+ * @param {Array} params.buttons - Array of button objects {text, action, danger}
+ */
+function showModal(params = {}) {
+    const buttons = params.buttons || [];
+    const buttonElements = buttons.map(btn => 
+        ce({
+            tag: 'button',
+            className: btn.danger ? 'modal-button danger' : 'modal-button',
+            text: btn.text,
+            onclick: btn.action
+        })
+    );
+    
+    const modal = ce({
+        className: 'modal',
+        children: [
+            params.title ? ce({
+                className: 'modal-title',
+                text: params.title
+            }) : null,
+            params.content ? ce({
+                className: 'modal-content',
+                html: params.content
+            }) : null,
+            ce({
+                className: 'modal-buttons',
+                children: buttonElements
+            })
+        ].filter(Boolean)
+    });
+    
+    const overlay = ce({
+        className: 'modal-overlay',
+        children: [modal]
+    });
+    
+    document.body.appendChild(overlay);
+}
+
+/**
+ * Close the current modal
+ */
+function closeModal() {
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+/**
+ * Create tabs interface
+ * @param {Array} tabs - Array of tab objects {label, content, onActivate}
+ * @returns {HTMLElement}
+ */
+function createTabs(tabs) {
+    const tabButtons = tabs.map((tab, index) => 
+        ce({
+            tag: 'button',
+            className: index === 0 ? 'tab-button active' : 'tab-button',
+            text: tab.label,
+            attrs: { 'data-tab-index': index },
+            onclick: (e) => {
+                switchTab(e.target);
+                if (tabs[index].onActivate) {
+                    setTimeout(() => tabs[index].onActivate(), 0);
+                }
+            }
+        })
+    );
+    
+    const tabContents = tabs.map((tab, index) => 
+        ce({
+            className: index === 0 ? 'tab-content active' : 'tab-content',
+            html: tab.content,
+            attrs: { 'data-tab-index': index }
+        })
+    );
+    
+    const container = ce({
+        className: 'tabs-container',
+        children: [
+            ce({
+                className: 'tabs-header',
+                children: tabButtons
+            }),
+            ...tabContents
+        ]
+    });
+    
+    // Call first tab's onActivate if exists
+    if (tabs[0].onActivate) {
+        setTimeout(() => tabs[0].onActivate(), 0);
+    }
+    
+    return container;
+}
+
+/**
+ * Switch active tab
+ */
+function switchTab(button) {
+    const index = button.getAttribute('data-tab-index');
+    const container = button.closest('.tabs-container');
+    
+    // Update buttons
+    container.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+    
+    // Update content
+    container.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+        if (content.getAttribute('data-tab-index') === index) {
+            content.classList.add('active');
+        }
+    });
+}
+
+/**
+ * Create top-right icon buttons
+ */
+function createTopRightButtons() {
+    // Remove existing buttons if present
+    const existing = document.querySelector('.top-right-buttons');
+    if (existing) existing.remove();
+    
+    const buttonsContainer = ce({
+        className: 'top-right-buttons',
+        children: [
+            ce({
+                tag: 'button',
+                className: 'icon-button',
+                html: '&#128187;', // Computer icon
+                attrs: { title: 'Computer' },
+                onclick: showComputerScreen
+            }),
+            ce({
+                tag: 'button',
+                className: 'icon-button',
+                html: '&#9881;', // Settings/gear icon
+                attrs: { title: 'Options' },
+                onclick: showOptionsModal
+            })
+        ]
+    });
+    
+    document.body.appendChild(buttonsContainer);
+}
+
+/**
+ * Create and display minimap
+ */
+function createMinimap() {
+    // Remove existing minimap if present
+    const existing = document.querySelector('.minimap');
+    if (existing) existing.remove();
+    
+    const minimap = ce({
+        className: 'minimap',
+        children: [
+            ce({
+                className: 'minimap-title',
+                text: 'SYSTEMS MAP'
+            }),
+            ce({
+                className: 'minimap-canvas',
+                id: 'minimap-canvas',
+                children: [
+                    ce({
+                        className: 'minimap-viewport',
+                        id: 'minimap-viewport'
+                    })
+                ]
+            }),
+            ce({
+                className: 'minimap-arrows',
+                children: [
+                    ce({ tag: 'button', className: 'minimap-arrow', text: '↑', onclick: () => scrollMinimap(0, 20) }),
+                    ce({ tag: 'button', className: 'minimap-arrow', text: '←', onclick: () => scrollMinimap(20, 0) }),
+                    ce({ tag: 'button', className: 'minimap-arrow', text: '→', onclick: () => scrollMinimap(-20, 0) }),
+                    ce({ tag: 'button', className: 'minimap-arrow', text: '↓', onclick: () => scrollMinimap(0, -20) })
+                ]
+            })
+        ]
+    });
+    
+    document.body.appendChild(minimap);
+    updateMinimap();
+    initMinimapDrag();
+}
+
+/**
+ * Update minimap with star systems
+ */
+function updateMinimap() {
+    const viewport = document.getElementById('minimap-viewport');
+    if (!viewport || !gameState) return;
+    
+    viewport.innerHTML = '';
+    
+    gameState.starSystems.forEach((system, index) => {
+        const isCurrent = index === gameState.currentSystemIndex;
+        
+        // Convert 0-100 coordinates to percentage
+        const left = `${system.x}%`;
+        const top = `${system.y}%`;
+        
+        const systemDot = ce({
+            className: isCurrent ? 'minimap-system current' : 'minimap-system',
+            style: { left, top },
+            attrs: { title: system.name }
+        });
+        
+        viewport.appendChild(systemDot);
+        
+        // Add label for all systems
+        const label = ce({
+            className: 'minimap-system-label',
+            text: system.name,
+            style: { 
+                left, 
+                top,
+                color: isCurrent ? '#0ff' : '#0f0'
+            }
+        });
+        viewport.appendChild(label);
+    });
+}
+
+/**
+ * Initialize minimap drag functionality
+ */
+function initMinimapDrag() {
+    const viewport = document.getElementById('minimap-viewport');
+    if (!viewport) return;
+    
+    let isDragging = false;
+    let startX, startY, scrollLeft, scrollTop;
+    
+    viewport.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const transform = viewport.style.transform.match(/translate\((.+)px, (.+)px\)/);
+        scrollLeft = transform ? parseFloat(transform[1]) : 0;
+        scrollTop = transform ? parseFloat(transform[2]) : 0;
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = scrollLeft + (e.clientX - startX);
+        const y = scrollTop + (e.clientY - startY);
+        viewport.style.transform = `translate(${Math.max(-200, Math.min(0, x))}px, ${Math.max(-200, Math.min(0, y))}px)`;
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+}
+
+/**
+ * Scroll minimap with arrow buttons
+ */
+function scrollMinimap(dx, dy) {
+    const viewport = document.getElementById('minimap-viewport');
+    if (!viewport) return;
+    
+    const transform = viewport.style.transform.match(/translate\((.+)px, (.+)px\)/);
+    const currentX = transform ? parseFloat(transform[1]) : 0;
+    const currentY = transform ? parseFloat(transform[2]) : 0;
+    
+    const newX = Math.max(-200, Math.min(0, currentX + dx));
+    const newY = Math.max(-200, Math.min(0, currentY + dy));
+    
+    viewport.style.transform = `translate(${newX}px, ${newY}px)`;
+}
+
+// ===== STAR SYSTEM CLASS =====
+
+class StarSystem {
+    constructor(name, x, y) {
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.marketPrices = this.generateMarketPrices();
+        this.cargo = this.generateCargo();
+        this.piracyLevel = Math.floor(Math.random() * 10) + 1; // 1-10
+        this.policeLevel = Math.floor(Math.random() * 10) + 1; // 1-10
+        this.merchantsLevel = Math.floor(Math.random() * 10) + 1; // 1-10
+    }
+    
+    generateMarketPrices() {
+        // Generate random prices for goods (base price ± variation)
+        return {
+            food: Math.floor(50 + Math.random() * 50),      // 50-100
+            water: Math.floor(30 + Math.random() * 40),     // 30-70
+            air: Math.floor(20 + Math.random() * 30)        // 20-50
+        };
+    }
+    
+    generateCargo() {
+        // Generate random limited cargo amounts
+        return {
+            food: Math.floor(Math.random() * 100) + 20,     // 20-119
+            water: Math.floor(Math.random() * 100) + 20,    // 20-119
+            air: Math.floor(Math.random() * 100) + 20       // 20-119
+        };
+    }
+}
+
+// Star system name generators
+const namePrefix = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Theta', 'Omega', 'Nova', 'Proxima', 'Kepler', 'Vega', 'Rigel', 'Sirius', 'Altair'];
+const nameSuffix = ['Prime', 'Centauri', 'Major', 'Minor', 'Sector', 'Outpost', 'Station', 'System', 'Nexus', 'Haven'];
+const singleNames = ['Terra', 'Mars', 'Jupiter', 'Saturn', 'Neptune', 'Pluto', 'Mercury', 'Venus', 'Titan', 'Europa', 'Ganymede', 'Io', 'Callisto', 'Triton', 'Enceladus'];
+
+function generateStarSystemName() {
+    const roll = Math.random();
+    if (roll < 0.3) {
+        // Single name
+        return singleNames[Math.floor(Math.random() * singleNames.length)];
+    } else if (roll < 0.7) {
+        // Prefix + Suffix
+        const prefix = namePrefix[Math.floor(Math.random() * namePrefix.length)];
+        const suffix = nameSuffix[Math.floor(Math.random() * nameSuffix.length)];
+        return `${prefix} ${suffix}`;
+    } else {
+        // Greek letter + Number
+        const prefix = namePrefix[Math.floor(Math.random() * namePrefix.length)];
+        const number = Math.floor(Math.random() * 999) + 1;
+        return `${prefix}-${number}`;
+    }
+}
+
+function generateStarSystems(count = 15) {
+    const systems = [];
+    const usedNames = new Set();
+    
+    for (let i = 0; i < count; i++) {
+        let name;
+        let attempts = 0;
+        do {
+            name = generateStarSystemName();
+            attempts++;
+        } while (usedNames.has(name) && attempts < 50);
+        
+        usedNames.add(name);
+        
+        // Generate coordinates (0-100 range for simplicity)
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        
+        systems.push(new StarSystem(name, x, y));
+    }
+    
+    return systems;
+}
+
+// Ship name generators
+const shipPrefix = ['Dark', 'Swift', 'Red', 'Black', 'Steel', 'Iron', 'Golden', 'Silver', 'Shadow', 'Night'];
+const shipSuffix = ['Falcon', 'Hawk', 'Eagle', 'Raven', 'Wolf', 'Tiger', 'Dragon', 'Viper', 'Cobra', 'Phoenix'];
+
+function generateShipName() {
+    const prefix = shipPrefix[Math.floor(Math.random() * shipPrefix.length)];
+    const suffix = shipSuffix[Math.floor(Math.random() * shipSuffix.length)];
+    return `${prefix} ${suffix}`;
+}
+
+function generatePirateShip() {
+    return {
+        name: generateShipName(),
+        type: 'Pirate',
+        hull: Math.floor(40 + Math.random() * 60), // 40-99
+        maxHull: 100,
+        weapons: Math.floor(3 + Math.random() * 5), // 3-7
+        threat: Math.floor(3 + Math.random() * 8) // 3-10
+    };
+}
+
+function generatePoliceShip() {
+    return {
+        name: generateShipName(),
+        type: 'Police',
+        hull: Math.floor(60 + Math.random() * 40), // 60-99
+        maxHull: 100,
+        weapons: Math.floor(5 + Math.random() * 5), // 5-9
+        threat: Math.floor(2 + Math.random() * 4) // 2-5
+    };
+}
+
+function generateMerchantShip() {
+    const goods = ['food', 'water', 'air'];
+    const cargo = {};
+    goods.forEach(good => {
+        cargo[good] = Math.floor(Math.random() * 50); // 0-49
+    });
+    
+    return {
+        name: generateShipName(),
+        type: 'Merchant',
+        hull: Math.floor(30 + Math.random() * 50), // 30-79
+        maxHull: 100,
+        cargo: cargo,
+        value: Math.floor(2000 + Math.random() * 5000) // 2000-6999
+    };
+}
+
+// ===== GAME STATE =====
+
+class GameState {
+    constructor() {
+        this.captain = {
+            name: 'Captain',
+            credits: 1000,
+            reputation: 0
+        };
+        
+        this.ship = {
+            name: 'SS Wanderer',
+            type: 'Light Freighter',
+            hull: 100,
+            maxHull: 100,
+            fuel: 100,
+            maxFuel: 100,
+            cargo: {},
+            maxCargo: 50,
+            value: 5000,
+            weapons: 2
+        };
+        
+        this.ownedShips = [this.ship]; // Track all owned ships
+        
+        this.starSystems = generateStarSystems(500);
+        this.currentSystemIndex = Math.floor(this.starSystems.length / 2); // Start in middle
+        this.location = this.starSystems[this.currentSystemIndex].name;
+        this.day = 1;
+    }
+    
+    // Damage the ship
+    damageShip(amount) {
+        this.ship.hull = Math.max(0, this.ship.hull - amount);
+        return this.ship.hull > 0;
+    }
+    
+    // Repair the ship
+    repairShip(amount) {
+        this.ship.hull = Math.min(this.ship.maxHull, this.ship.hull + amount);
+    }
+    
+    // Consume fuel
+    useFuel(amount) {
+        if (this.ship.fuel >= amount) {
+            this.ship.fuel -= amount;
+            return true;
+        }
+        return false;
+    }
+    
+    // Add credits
+    addCredits(amount) {
+        this.captain.credits += amount;
+    }
+    
+    // Spend credits
+    spendCredits(amount) {
+        if (this.captain.credits >= amount) {
+            this.captain.credits -= amount;
+            return true;
+        }
+        return false;
+    }
+    
+    // Get total cargo count
+    getTotalCargo() {
+        return Object.values(this.ship.cargo).reduce((sum, qty) => sum + qty, 0);
+    }
+    
+    // Add cargo
+    addCargo(item, quantity) {
+        if (this.getTotalCargo() + quantity <= this.ship.maxCargo) {
+            this.ship.cargo[item] = (this.ship.cargo[item] || 0) + quantity;
+            return true;
+        }
+        return false;
+    }
+    
+    // Remove cargo
+    removeCargo(item, quantity) {
+        if ((this.ship.cargo[item] || 0) >= quantity) {
+            this.ship.cargo[item] -= quantity;
+            if (this.ship.cargo[item] === 0) delete this.ship.cargo[item];
+            return true;
+        }
+        return false;
+    }
+    
+    // Get ship status as HTML
+    getShipStatus() {
+        return `
+            <div class="stats-group">
+                <div class="stat-line">
+                    <span class="stat-label">Ship:</span>
+                    <span class="stat-value">${this.ship.name}</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">Hull:</span>
+                    <span class="stat-value">${this.ship.hull}/${this.ship.maxHull}</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">Fuel:</span>
+                    <span class="stat-value">${this.ship.fuel}/${this.ship.maxFuel}</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">Cargo:</span>
+                    <span class="stat-value">${this.getTotalCargo()}/${this.ship.maxCargo}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Get captain status as HTML
+    getCaptainStatus() {
+        return `
+            <div class="stats-group">
+                <div class="stat-line">
+                    <span class="stat-label">Captain:</span>
+                    <span class="stat-value">${this.captain.name}</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">Credits:</span>
+                    <span class="stat-value">${this.captain.credits}</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">Reputation:</span>
+                    <span class="stat-value">${this.captain.reputation}</span>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ===== GAME SCREENS =====
+
+function showTitleScreen() {
+    showMenu({
+        title: 'STELLAR TRADER',
+        content: `
+            <p>Welcome to the vast expanse of space.</p>
+            <p>Trade goods, explore systems, and build your fortune among the stars.</p>
+        `,
+        buttons: [
+            {
+                text: 'New Game',
+                action: startNewGame
+            },
+            {
+                text: 'Load Game',
+                action: () => {
+                    showMenu({
+                        title: 'LOAD GAME',
+                        content: '<p>Save system not yet implemented.</p>',
+                        buttons: [
+                            { text: 'Back', action: showTitleScreen }
+                        ]
+                    });
+                }
+            },
+            {
+                text: 'Credits',
+                action: showCredits
+            }
+        ]
+    });
+}
+
+function showCredits() {
+    showMenu({
+        title: 'CREDITS',
+        content: `
+            <p>STELLAR TRADER</p>
+            <p>A space trading adventure</p>
+            <br>
+            <p>Version 1.0</p>
+        `,
+        buttons: [
+            { text: 'Back', action: showTitleScreen }
+        ]
+    });
+}
+
+function startNewGame() {
+    // Initialize game state
+    window.gameState = new GameState();
+    
+    showMenu({
+        title: 'NEW GAME',
+        content: `
+            <p>Enter your name, Captain:</p>
+            <input type="text" id="captain-name-input" value="Captain Nova" 
+                   style="width: 100%; padding: 8px; margin: 10px 0; background: #001; 
+                   border: 1px solid #0f0; color: #0f0; font-family: 'Courier New', monospace;">
+        `,
+        buttons: [
+            {
+                text: 'Begin Journey',
+                action: () => {
+                    const nameInput = document.getElementById('captain-name-input');
+                    if (nameInput && nameInput.value.trim()) {
+                        gameState.captain.name = nameInput.value.trim();
+                    }
+                    showMainMenu();
+                }
+            },
+            {
+                text: 'Back',
+                action: showTitleScreen
+            }
+        ]
+    });
+    
+    // Focus the input
+    setTimeout(() => {
+        const input = document.getElementById('captain-name-input');
+        if (input) input.focus();
+    }, 0);
+}
+
+function showMainMenu() {
+    const currentSystem = gameState.starSystems[gameState.currentSystemIndex];
+    
+    const tabs = [
+        {
+            label: 'Travel',
+            content: getTravelContent(),
+            onActivate: renderTravelTab
+        },
+        {
+            label: 'Info',
+            content: getSystemInfoContent(currentSystem)
+        },
+        {
+            label: 'Shipyard',
+            content: getShipyardContent(),
+            onActivate: renderShipyardTable
+        },
+        {
+            label: 'Market',
+            content: getMarketContent(currentSystem),
+            onActivate: () => renderMarketTable(currentSystem)
+        }
+    ];
+    
+    const container = document.getElementById('game-container');
+    container.innerHTML = '';
+    
+    const menu = ce({
+        className: 'menu',
+        children: [
+            createTabs(tabs)
+        ]
+    });
+    
+    container.appendChild(menu);
+    
+    // Create top buttons (no minimap)
+    createTopRightButtons();
+}
+
+function getSystemInfoContent(system) {
+    const leftColumn = `
+        <h3 style="color: #0ff; margin-bottom: 15px;">SYSTEM INFORMATION</h3>
+        <div class="stats-group">
+            <div class="stat-line">
+                <span class="stat-label">System Name:</span>
+                <span class="stat-value">${system.name}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Coordinates:</span>
+                <span class="stat-value">${system.x.toFixed(1)}, ${system.y.toFixed(1)}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Piracy Level:</span>
+                <span class="stat-value">${system.piracyLevel}/10</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Police Level:</span>
+                <span class="stat-value">${system.policeLevel}/10</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Merchants Level:</span>
+                <span class="stat-value">${system.merchantsLevel}/10</span>
+            </div>
+        </div>
+        <h3 style="color: #0ff; margin: 20px 0 15px;">YOUR SHIP</h3>
+        ${gameState.getShipStatus()}
+    `;
+    
+    const rightColumn = `
+        <h3 style="color: #0ff; margin-bottom: 15px;">CARGO HOLD</h3>
+        <div class="stats-group">
+            ${Object.keys(gameState.ship.cargo).length > 0 ? 
+                Object.entries(gameState.ship.cargo).map(([item, qty]) => `
+                    <div class="stat-line">
+                        <span class="stat-label">${item.charAt(0).toUpperCase() + item.slice(1)}:</span>
+                        <span class="stat-value">${qty} units</span>
+                    </div>
+                `).join('') : 
+                '<p style="text-align: center; color: #888;">Cargo hold is empty</p>'
+            }
+        </div>
+        <h3 style="color: #0ff; margin: 20px 0 15px;">CAPTAIN INFO</h3>
+        ${gameState.getCaptainStatus()}
+    `;
+    
+    const layout = createTwoColumnLayout({ leftColumn, rightColumn });
+    return layout.outerHTML;
+}
+
+function getShipyardContent() {
+    return `
+        <h3 style="color: #0ff; margin-bottom: 15px;">SHIPYARD SERVICES</h3>
+        <div id="shipyard-content" class="two-column-layout">
+            <div class="column" id="shipyard-left"></div>
+            <div class="column" id="shipyard-right"></div>
+        </div>
+        <div id="shipyard-buttons" class="button-container"></div>
+    `;
+}
+
+function renderShipyardTable() {
+    const leftCol = document.getElementById('shipyard-left');
+    const rightCol = document.getElementById('shipyard-right');
+    const buttonsDiv = document.getElementById('shipyard-buttons');
+    if (!leftCol || !rightCol || !buttonsDiv) return;
+    
+    leftCol.innerHTML = '';
+    rightCol.innerHTML = '';
+    buttonsDiv.innerHTML = '';
+    
+    // Your ships table (LEFT COLUMN)
+    const yourShipsSection = ce({
+        className: 'stats-group',
+        style: { marginTop: '20px' },
+        children: [
+            ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Your Ships' })
+        ]
+    });
+    
+    const yourShipsTable = createDataTable({
+        id: 'your-ships',
+        scrollable: true,
+        headers: ['Name', 'Type', 'Hull', 'Fuel', 'Cargo', 'Status'],
+        rows: gameState.ownedShips.map((ship, idx) => ({
+            cells: [
+                ship.name, 
+                ship.type, 
+                `${ship.hull}/${ship.maxHull}`, 
+                `${ship.fuel}/${ship.maxFuel}`, 
+                ship.maxCargo,
+                ship === gameState.ship ? '<span style="color: #0ff;">ACTIVE</span>' : `${ship.value} cr`
+            ],
+            data: { ship, index: idx }
+        })),
+        onSelect: (rowData) => {
+            window.selectedOwnedShip = rowData.data;
+            window.selectedShipToBuy = null;
+            renderShipyardButtons();
+        }
+    });
+    
+    yourShipsSection.appendChild(yourShipsTable);
+    leftCol.appendChild(yourShipsSection);
+    
+    // Ships for sale table (RIGHT COLUMN)
+    const shipsForSale = [
+        { name: 'Scout Ship', type: 'Scout', hull: 80, fuel: 150, cargo: 30, value: 8000 },
+        { name: 'Cargo Hauler', type: 'Freighter', hull: 120, fuel: 100, cargo: 100, value: 15000 },
+        { name: 'Battle Cruiser', type: 'Combat', hull: 200, fuel: 120, cargo: 40, value: 25000 }
+    ];
+    
+    const shipsSection = ce({
+        className: 'stats-group',
+        style: { marginTop: '20px' },
+        children: [
+            ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Ships for Sale' })
+        ]
+    });
+    
+    const shipsTable = createDataTable({
+        id: 'ships-for-sale',
+        scrollable: true,
+        headers: ['Name', 'Type', 'Hull', 'Fuel', 'Cargo', 'Price'],
+        rows: shipsForSale.map((ship, idx) => ({
+            cells: [ship.name, ship.type, ship.hull, ship.fuel, ship.cargo, `${ship.value} cr`],
+            data: { ...ship, index: idx }
+        })),
+        onSelect: (rowData) => {
+            window.selectedShipToBuy = rowData.data;
+            window.selectedOwnedShip = null;
+            renderShipyardButtons();
+        }
+    });
+    
+    shipsSection.appendChild(shipsTable);
+    rightCol.appendChild(shipsSection);
+    
+    renderShipyardButtons();
+}
+
+function renderShipyardButtons() {
+    const buttonsDiv = document.getElementById('shipyard-buttons');
+    if (!buttonsDiv) return;
+    
+    // Keep maintenance buttons
+    const maintenanceButtons = Array.from(buttonsDiv.children).slice(0, 2);
+    buttonsDiv.innerHTML = '';
+    maintenanceButtons.forEach(btn => buttonsDiv.appendChild(btn));
+    
+    // Add ship purchase button
+    if (window.selectedShipToBuy) {
+        const ship = window.selectedShipToBuy;
+        const canAfford = gameState.captain.credits >= ship.value;
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Purchase Ship (${ship.value} cr)`,
+            action: () => buyShip(ship.index),
+            disabled: !canAfford,
+            disabledReason: canAfford ? '' : `Need ${ship.value} credits (have ${gameState.captain.credits})`
+        }));
+    }
+    
+    // Add switch/sell buttons for owned ships
+    if (window.selectedOwnedShip) {
+        const { ship, index } = window.selectedOwnedShip;
+        const isActive = ship === gameState.ship;
+        
+        if (!isActive) {
+            buttonsDiv.appendChild(createButton({
+                text: 'Switch To Ship',
+                action: () => switchToShip(index)
+            }));
+            
+            const canSell = gameState.ownedShips.length > 1;
+            buttonsDiv.appendChild(createButton({
+                text: `Sell Ship (${ship.value} cr)`,
+                action: () => sellShip(index),
+                disabled: !canSell,
+                disabledReason: canSell ? '' : 'Cannot sell your last ship'
+            }));
+        }
+    }
+}
+
+function getMarketContent(system) {
+    return `
+        <h3 style="color: #0ff; margin-bottom: 15px;">COMMODITY MARKET</h3>
+        <div class="stats-group" style="margin-bottom: 15px;">
+            <div class="stat-line">
+                <span class="stat-label">Cargo Space:</span>
+                <span class="stat-value">${gameState.getTotalCargo()}/${gameState.ship.maxCargo}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Credits:</span>
+                <span class="stat-value">${gameState.captain.credits}</span>
+            </div>
+        </div>
+        <div class="two-column-layout">
+            <div class="column" id="market-left"></div>
+            <div class="column" id="market-right"></div>
+        </div>
+        <div id="market-buttons" class="button-container"></div>
+    `;
+}
+
+function renderMarketTable(system) {
+    const leftCol = document.getElementById('market-left');
+    const rightCol = document.getElementById('market-right');
+    const buttonsDiv = document.getElementById('market-buttons');
+    if (!leftCol || !rightCol || !buttonsDiv) return;
+    
+    leftCol.innerHTML = '';
+    rightCol.innerHTML = '';
+    buttonsDiv.innerHTML = '';
+    
+    const goods = ['food', 'water', 'air'];
+    
+    // Market prices table (LEFT COLUMN)
+    const marketSection = ce({
+        className: 'stats-group',
+        children: [
+            ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Market Prices' })
+        ]
+    });
+    
+    const marketTable = createDataTable({
+        id: 'market-goods',
+        scrollable: true,
+        headers: ['Commodity', 'Price (per unit)', 'Available'],
+        rows: goods.map(good => ({
+            cells: [
+                good.charAt(0).toUpperCase() + good.slice(1),
+                `${system.marketPrices[good]} cr`,
+                `${system.cargo[good]} units`
+            ],
+            data: { good, price: system.marketPrices[good], available: system.cargo[good] }
+        })),
+        onSelect: (rowData) => {
+            window.selectedMarketGood = rowData.data;
+            renderMarketButtons();
+        }
+    });
+    
+    marketSection.appendChild(marketTable);
+    leftCol.appendChild(marketSection);
+    
+    // Cargo table (RIGHT COLUMN)
+    const cargoSection = ce({
+        className: 'stats-group',
+        children: [
+            ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Your Cargo' })
+        ]
+    });
+    
+    const cargoItems = Object.entries(gameState.ship.cargo);
+    
+    if (cargoItems.length > 0) {
+        const cargoTable = createDataTable({
+            id: 'cargo-goods',
+            scrollable: true,
+            headers: ['Commodity', 'Quantity', 'Value'],
+            rows: cargoItems.map(([good, qty]) => ({
+                cells: [
+                    good.charAt(0).toUpperCase() + good.slice(1),
+                    `${qty} units`,
+                    `${system.marketPrices[good] * qty} cr`
+                ],
+                data: { good, quantity: qty, price: system.marketPrices[good] }
+            })),
+            onSelect: (rowData) => {
+                window.selectedCargoGood = rowData.data;
+                renderMarketButtons();
+            }
+        });
+        
+        cargoSection.appendChild(cargoTable);
+    } else {
+        cargoSection.appendChild(ce({
+            tag: 'p',
+            style: { textAlign: 'center', color: '#888', padding: '20px' },
+            text: 'Cargo hold is empty'
+        }));
+    }
+    
+    rightCol.appendChild(cargoSection);
+    
+    renderMarketButtons();
+}
+
+function renderMarketButtons() {
+    const buttonsDiv = document.getElementById('market-buttons');
+    if (!buttonsDiv) return;
+    
+    buttonsDiv.innerHTML = '';
+    
+    // Buy buttons for selected market good
+    if (window.selectedMarketGood) {
+        const { good, price, available } = window.selectedMarketGood;
+        const cargoSpace = gameState.ship.maxCargo - gameState.getTotalCargo();
+        const currentSystem = gameState.starSystems[gameState.currentSystemIndex];
+        const systemCargo = currentSystem.cargo[good] || 0;
+        
+        const canBuy1 = gameState.captain.credits >= price && cargoSpace >= 1 && systemCargo >= 1;
+        const buy1Reason = systemCargo < 1 ? 'Market out of stock' :
+                          gameState.captain.credits < price ? `Need ${price} credits (have ${gameState.captain.credits})` :
+                          cargoSpace < 1 ? 'Cargo hold is full' : '';
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Buy 1 ${good} (${price} cr)`,
+            action: () => buyGood(good, price, 1),
+            disabled: !canBuy1,
+            disabledReason: buy1Reason
+        }));
+        
+        const qty10Cost = price * 10;
+        const canBuy10 = gameState.captain.credits >= qty10Cost && cargoSpace >= 10 && systemCargo >= 10;
+        const buy10Reason = systemCargo < 10 ? `Only ${systemCargo} units available` :
+                           gameState.captain.credits < qty10Cost ? `Need ${qty10Cost} credits (have ${gameState.captain.credits})` :
+                           cargoSpace < 10 ? `Need ${10 - cargoSpace} more cargo space` : '';
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Buy 10 ${good} (${qty10Cost} cr)`,
+            action: () => buyGood(good, price, 10),
+            disabled: !canBuy10,
+            disabledReason: buy10Reason
+        }));
+    }
+    
+    // Sell buttons for selected cargo good
+    if (window.selectedCargoGood) {
+        const { good, quantity, price } = window.selectedCargoGood;
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Sell 1 ${good} (${price} cr)`,
+            action: () => sellGood(good, price, 1),
+            disabled: quantity < 1,
+            disabledReason: quantity < 1 ? 'Not enough cargo' : ''
+        }));
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Sell 10 ${good} (${price * 10} cr)`,
+            action: () => sellGood(good, price, 10),
+            disabled: quantity < 10,
+            disabledReason: quantity < 10 ? `Only have ${quantity} units` : ''
+        }));
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Sell All ${good} (${price * quantity} cr)`,
+            action: () => sellGood(good, price, quantity),
+            disabled: quantity < 1,
+            disabledReason: quantity < 1 ? 'Not enough cargo' : ''
+        }));
+    }
+    
+    if (!window.selectedMarketGood && !window.selectedCargoGood) {
+        buttonsDiv.innerHTML = '<p style="color: #888; text-align: center; width: 100%;">Select a commodity to trade</p>';
+    }
+}
+
+function showComputerScreen() {
+    const tabs = [
+        {
+            label: 'Captain Info',
+            content: `
+                <h3 style="color: #0ff; margin-bottom: 15px;">CAPTAIN PROFILE</h3>
+                ${gameState.getCaptainStatus()}
+                <div style="margin-top: 20px; padding: 10px; border: 1px solid #0f0; border-radius: 4px;">
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Rank:</span> Independent Trader</p>
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Missions Completed:</span> 0</p>
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Total Distance Traveled:</span> 0 LY</p>
+                </div>
+            `
+        },
+        {
+            label: 'Ship Info',
+            content: `
+                <h3 style="color: #0ff; margin-bottom: 15px;">SHIP SPECIFICATIONS</h3>
+                ${gameState.getShipStatus()}
+                <div style="margin-top: 20px; padding: 10px; border: 1px solid #0f0; border-radius: 4px;">
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Class:</span> Light Freighter</p>
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Engine Type:</span> Standard Ion Drive</p>
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Weapons:</span> None</p>
+                    <p style="margin: 5px 0;"><span style="color: #0ff;">Shields:</span> Basic</p>
+                </div>
+            `
+        }
+    ];
+    
+    const container = document.getElementById('game-container');
+    container.innerHTML = '';
+    
+    const menu = ce({
+        className: 'menu',
+        children: [
+            ce({
+                className: 'menu-title',
+                text: 'COMPUTER TERMINAL'
+            }),
+            createTabs(tabs),
+            ce({
+                className: 'menu-buttons',
+                children: [
+                    ce({
+                        tag: 'button',
+                        className: 'menu-button',
+                        text: 'Back to Main',
+                        onclick: showMainMenu
+                    })
+                ]
+            })
+        ]
+    });
+    
+    container.appendChild(menu);
+    
+    // Keep minimap and top buttons visible
+    createMinimap();
+    createTopRightButtons();
+}
+
+function showOptionsModal() {
+    showModal({
+        title: 'OPTIONS',
+        content: `
+            <p>Game Options</p>
+            <p style="margin-top: 15px; font-size: 0.9em; color: #888;">Version 1.0</p>
+        `,
+        buttons: [
+            {
+                text: 'Return to Title',
+                action: () => {
+                    closeModal();
+                    showTitleScreen();
+                },
+                danger: true
+            },
+            {
+                text: 'Close',
+                action: closeModal
+            }
+        ]
+    });
+}
+
+function getTravelContent() {
+    return `
+        <h3 style="color: #0ff; margin-bottom: 15px; text-align: center;">STAR NAVIGATION</h3>
+        <div id="travel-map-container"></div>
+        <div class="stats-group" style="margin-top: 15px;">
+            <div class="stat-line">
+                <span class="stat-label">Current Location:</span>
+                <span class="stat-value">${gameState.location}</span>
+            </div>
+            <div id="destination-info"></div>
+        </div>
+        <div id="travel-buttons" class="button-container"></div>
+    `;
+}
+
+function renderTravelTab() {
+    const mapContainer = document.getElementById('travel-map-container');
+    if (!mapContainer) return;
+    
+    mapContainer.innerHTML = '';
+    
+    const travelMap = ce({
+        className: 'travel-map',
+        children: [
+            ce({
+                className: 'travel-map-title',
+                text: 'GALAXY MAP'
+            }),
+            ce({
+                className: 'travel-map-canvas',
+                id: 'travel-map-canvas',
+                children: [
+                    ce({
+                        className: 'travel-map-viewport',
+                        id: 'travel-map-viewport'
+                    })
+                ]
+            })
+        ]
+    });
+    
+    mapContainer.appendChild(travelMap);
+    updateTravelMap();
+    updateDestinationInfo();
+}
+
+function updateTravelMap() {
+    const viewport = document.getElementById('travel-map-viewport');
+    const canvas = document.getElementById('travel-map-canvas');
+    if (!viewport || !canvas || !gameState) return;
+    
+    viewport.innerHTML = '';
+    
+    const currentSystem = gameState.starSystems[gameState.currentSystemIndex];
+    const canvasRect = canvas.getBoundingClientRect();
+    const centerX = canvasRect.width / 2;
+    const centerY = canvasRect.height / 2;
+    
+    // Calculate view range (show systems within a certain radius)
+    const viewRadius = 50; // Show systems within 50 units of current position
+    
+    gameState.starSystems.forEach((system, index) => {
+        const isCurrent = index === gameState.currentSystemIndex;
+        const distance = calculateDistance(currentSystem, system);
+        
+        // Only show systems within view radius or current system
+        if (!isCurrent && distance > viewRadius) return;
+        
+        const fuelNeeded = Math.ceil(distance / 2.5);
+        const canReach = gameState.ship.fuel >= fuelNeeded;
+        
+        // Calculate relative position to center
+        const relativeX = (system.x - currentSystem.x) * 20; // 5x zoom: scale factor increased from 4 to 20
+        const relativeY = (system.y - currentSystem.y) * 20;
+        
+        const left = centerX + relativeX;
+        const top = centerY + relativeY;
+        
+        let systemClass = 'travel-system';
+        if (isCurrent) systemClass += ' current';
+        else if (canReach && !isCurrent) systemClass += ' reachable';
+        else if (!isCurrent) systemClass += ' unreachable';
+        
+        const systemDot = ce({
+            className: systemClass,
+            style: { left: `${left}px`, top: `${top}px` },
+            attrs: { title: `${system.name} - ${fuelNeeded} fuel` },
+            onclick: isCurrent ? null : () => selectTravelDestination(system, index, distance, fuelNeeded, canReach)
+        });
+        
+        viewport.appendChild(systemDot);
+        
+        const label = ce({
+            className: 'travel-system-label',
+            text: system.name,
+            style: { 
+                left: `${left}px`, 
+                top: `${top}px`,
+                color: isCurrent ? '#0ff' : canReach ? '#ff0' : '#f00'
+            }
+        });
+        viewport.appendChild(label);
+    });
+}
+
+function calculateDistance(system1, system2) {
+    const dx = system2.x - system1.x;
+    const dy = system2.y - system1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function selectTravelDestination(system, index, distance, fuelNeeded, canReach) {
+    const tripDuration = Math.ceil(distance / 1.25); // 4x duration: 1 day per 1.25 distance units
+    window.selectedDestination = { system, index, distance, fuelNeeded, canReach, tripDuration };
+    
+    updateDestinationInfo();
+    renderTravelButtons();
+}
+
+function updateDestinationInfo() {
+    const infoDiv = document.getElementById('destination-info');
+    if (!infoDiv) return;
+    
+    if (window.selectedDestination) {
+        const { system, fuelNeeded, tripDuration, canReach } = window.selectedDestination;
+        infoDiv.innerHTML = `
+            <div class="stat-line" style="margin-top: 10px;">
+                <span class="stat-label">Destination:</span>
+                <span class="stat-value">${system.name}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Fuel Cost:</span>
+                <span class="stat-value" style="color: ${canReach ? '#0f0' : '#f00'};">${fuelNeeded} / ${gameState.ship.fuel}</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Trip Duration:</span>
+                <span class="stat-value">${tripDuration} day${tripDuration > 1 ? 's' : ''}</span>
+            </div>
+        `;
+    } else {
+        infoDiv.innerHTML = '<p style="text-align: center; color: #888; margin-top: 10px;">Select a system to view travel details</p>';
+    }
+}
+
+function renderTravelButtons() {
+    const buttonsDiv = document.getElementById('travel-buttons');
+    if (!buttonsDiv) return;
+    
+    buttonsDiv.innerHTML = '';
+    
+    if (window.selectedDestination) {
+        const { system, index, fuelNeeded, canReach } = window.selectedDestination;
+        
+        buttonsDiv.appendChild(createButton({
+            text: `Travel to ${system.name} (${fuelNeeded} fuel)`,
+            action: () => travelToSystem(index),
+            disabled: !canReach,
+            disabledReason: canReach ? '' : `Need ${fuelNeeded} fuel (have ${gameState.ship.fuel})`
+        }));
+    }
+}
+
+function travelToSystem(index) {
+    if (!window.selectedDestination) return;
+    
+    const { fuelNeeded, canReach, tripDuration } = window.selectedDestination;
+    
+    if (canReach && gameState.useFuel(fuelNeeded)) {
+        const fromSystem = gameState.starSystems[gameState.currentSystemIndex];
+        const toSystem = gameState.starSystems[index];
+        
+        // Calculate encounter chance
+        const avgPiracy = (fromSystem.piracyLevel + toSystem.piracyLevel) / 2;
+        const avgPolice = (fromSystem.policeLevel + toSystem.policeLevel) / 2;
+        const avgMerchants = (fromSystem.merchantsLevel + toSystem.merchantsLevel) / 2;
+        
+        // Generate encounters based on trip duration and regional levels
+        const encounters = [];
+        
+        // Multiple chances for encounters based on trip duration
+        const encounterChecks = Math.max(1, Math.floor(tripDuration / 2));
+        
+        for (let i = 0; i < encounterChecks; i++) {
+            // Chance for pirate encounter based on piracy level
+            if (Math.random() * 10 < avgPiracy) {
+                encounters.push(generatePirateShip());
+            }
+            
+            // Chance for police encounter based on police level
+            if (Math.random() * 10 < avgPolice) {
+                encounters.push(generatePoliceShip());
+            }
+            
+            // Chance for merchant encounter based on merchants level
+            if (Math.random() * 10 < avgMerchants) {
+                encounters.push(generateMerchantShip());
+            }
+        }
+        
+        // Show travel encounter menu
+        showTravelEncounterMenu(index, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters);
+    }
+}
+
+function showTravelEncounterMenu(destinationIndex, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, allEncounters) {
+    let currentDay = 0; // Start at 0 so progress bar is empty
+    let isPaused = true; // Start paused
+    let travelInterval = null;
+    let activeEncounter = null;
+    let remainingEncounters = [...allEncounters];
+    
+    function getJourneyContent() {
+        // Create ASCII progress bar
+        const progressPercent = Math.max(0, currentDay / tripDuration);
+        const barWidth = 40;
+        const filledWidth = Math.floor(progressPercent * barWidth);
+        const emptyWidth = barWidth - filledWidth;
+        const progressBar = '[' + '='.repeat(filledWidth) + '>'.repeat(Math.min(1, emptyWidth)) + '.'.repeat(Math.max(0, emptyWidth - 1)) + ']';
+        
+        return `
+            <div id="journey-progress-bar" style="font-family: monospace; font-size: 14px; color: #0f0; text-align: center; margin-bottom: 20px; letter-spacing: 1px;">
+                ${progressBar} Day ${currentDay.toFixed(1)} / ${tripDuration}
+            </div>
+            <div id="journey-content-columns"></div>
+            <div id="journey-buttons" class="button-container"></div>
+        `;
+    }
+    
+    function getEncounterContent() {
+        return `
+            <div id="encounter-content-columns"></div>
+            <div id="encounter-buttons" class="button-container"></div>
+        `;
+    }
+    
+    function renderJourneyContent() {
+        const container = document.getElementById('journey-content-columns');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const layout = createTwoColumnLayout({
+            leftColumn: ce({
+                className: 'stats-group',
+                children: [
+                    ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Travel Progress' }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Destination:' }),
+                            ce({ className: 'stat-value', text: toSystem.name })
+                        ]
+                    }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Current Day:' }),
+                            ce({ className: 'stat-value', text: `${currentDay.toFixed(1)} of ${tripDuration}` })
+                        ]
+                    }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Days Remaining:' }),
+                            ce({ className: 'stat-value', text: `${Math.max(0, tripDuration - currentDay).toFixed(1)}` })
+                        ]
+                    }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Status:' }),
+                            ce({ className: 'stat-value', text: activeEncounter ? 'ENCOUNTER!' : (isPaused ? 'Paused' : 'Traveling...'), style: { color: activeEncounter ? '#f00' : (isPaused ? '#ff0' : '#0f0') } })
+                        ]
+                    })
+                ]
+            }),
+            rightColumn: ce({
+                className: 'stats-group',
+                children: [
+                    ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Region Statistics' }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Piracy Level:' }),
+                            ce({ className: 'stat-value', text: avgPiracy.toFixed(1) + '/10' })
+                        ]
+                    }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Police Level:' }),
+                            ce({ className: 'stat-value', text: avgPolice.toFixed(1) + '/10' })
+                        ]
+                    }),
+                    ce({
+                        className: 'stat-line',
+                        children: [
+                            ce({ className: 'stat-label', text: 'Merchants Level:' }),
+                            ce({ className: 'stat-value', text: avgMerchants.toFixed(1) + '/10' })
+                        ]
+                    })
+                ]
+            })
+        });
+        
+        container.appendChild(layout);
+        renderJourneyButtons();
+    }
+    
+    function renderEncounterContent() {
+        const container = document.getElementById('encounter-content-columns');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!activeEncounter) {
+            container.appendChild(ce({
+                tag: 'p',
+                style: { textAlign: 'center', color: '#888', padding: '40px' },
+                text: 'No active encounters'
+            }));
+            return;
+        }
+        
+        // Player ship rows
+        const playerShipRows = [gameState.ship].map(ship => {
+            const weapons = ship.weapons || 0;
+            return {
+                cells: [
+                    ship.name,
+                    ship.type,
+                    `Hull: ${ship.hull}/${ship.maxHull} | Weapons: ${weapons}`
+                ],
+                data: ship
+            };
+        });
+        
+        // Encounter ship rows
+        const encounterRows = [activeEncounter].map(ship => {
+            let detailsDisplay = '';
+            
+            if (ship.type === 'Pirate' || ship.type === 'Police') {
+                detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Weapons: ${ship.weapons} | Threat: ${ship.threat}`;
+            } else if (ship.type === 'Merchant') {
+                detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull}`;
+            }
+            
+            return {
+                cells: [ship.name, ship.type, detailsDisplay],
+                data: ship
+            };
+        });
+        
+        const layout = createTwoColumnLayout({
+            leftColumn: ce({
+                children: [
+                    ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Your Ships' }),
+                    createDataTable({
+                        id: 'player-ships-encounter',
+                        scrollable: true,
+                        headers: ['Ship Name', 'Type', 'Status'],
+                        rows: playerShipRows,
+                        onSelect: () => {}
+                    })
+                ]
+            }),
+            rightColumn: ce({
+                children: [
+                    ce({ tag: 'h4', style: { color: '#0ff', marginBottom: '10px' }, text: 'Encountered Ship' }),
+                    createDataTable({
+                        id: 'encountered-ships-active',
+                        scrollable: true,
+                        headers: ['Ship Name', 'Type', 'Status'],
+                        rows: encounterRows,
+                        onSelect: () => {}
+                    })
+                ]
+            })
+        });
+        
+        container.appendChild(layout);
+        renderEncounterButtons();
+    }
+    
+    function renderJourneyButtons() {
+        const buttonsDiv = document.getElementById('journey-buttons');
+        if (!buttonsDiv) return;
+        
+        buttonsDiv.innerHTML = '';
+        
+        if (isPaused) {
+            buttonsDiv.appendChild(createButton({
+                text: 'Resume Journey',
+                action: resumeJourney,
+                disabled: activeEncounter !== null,
+                disabledReason: activeEncounter ? 'Resolve encounter first' : ''
+            }));
+        } else {
+            buttonsDiv.appendChild(createButton({
+                text: 'Pause Journey',
+                action: pauseJourney,
+                disabled: activeEncounter !== null
+            }));
+        }
+    }
+    
+    function renderEncounterButtons() {
+        const buttonsDiv = document.getElementById('encounter-buttons');
+        if (!buttonsDiv) return;
+        
+        buttonsDiv.innerHTML = '';
+        
+        if (activeEncounter) {
+            buttonsDiv.appendChild(createButton({
+                text: 'Ignore and Continue',
+                action: resolveEncounter
+            }));
+        }
+    }
+    
+    function pauseJourney() {
+        isPaused = true;
+        if (travelInterval) {
+            clearInterval(travelInterval);
+            travelInterval = null;
+        }
+        renderJourneyContent();
+    }
+    
+    function resumeJourney() {
+        if (activeEncounter) return;
+        isPaused = false;
+        startTravelInterval();
+        renderJourneyContent();
+    }
+    
+    function resolveEncounter() {
+        activeEncounter = null;
+        renderEncounterContent();
+        renderJourneyContent();
+        
+        // Resume journey automatically
+        if (currentDay < tripDuration) {
+            isPaused = false;
+            startTravelInterval();
+        }
+        
+        // Switch back to journey tab
+        const journeyTab = document.querySelector('.tab-button[data-tab="journey"]');
+        if (journeyTab) journeyTab.click();
+    }
+    
+    function startTravelInterval() {
+        if (travelInterval) clearInterval(travelInterval);
+        
+        travelInterval = setInterval(() => {
+            if (isPaused || activeEncounter) return;
+            
+            currentDay += 0.1; // Increment by 0.1 days for smoother progress
+            
+            // Update progress bar in journey tab
+            const progressBarElement = document.getElementById('journey-progress-bar');
+            if (progressBarElement) {
+                const progressPercent = Math.max(0, currentDay / tripDuration);
+                const barWidth = 40;
+                const filledWidth = Math.floor(progressPercent * barWidth);
+                const emptyWidth = barWidth - filledWidth;
+                const progressBar = '[' + '='.repeat(filledWidth) + '>'.repeat(Math.min(1, emptyWidth)) + '.'.repeat(Math.max(0, emptyWidth - 1)) + ']';
+                progressBarElement.textContent = progressBar + ` Day ${currentDay.toFixed(1)} / ${tripDuration}`;
+            }
+            
+            renderJourneyContent();
+            
+            // Check for encounters (roughly one per 2 days of travel)
+            if (remainingEncounters.length > 0 && Math.random() < 0.04) { // Adjusted for faster ticks
+                triggerEncounter();
+            }
+            
+            // Check if journey is complete
+            if (currentDay >= tripDuration) {
+                completeJourney();
+            }
+        }, 200); // Update every 200ms for smoother progress
+    }
+    
+    function triggerEncounter() {
+        if (remainingEncounters.length === 0) return;
+        
+        activeEncounter = remainingEncounters.shift();
+        isPaused = true;
+        
+        if (travelInterval) {
+            clearInterval(travelInterval);
+            travelInterval = null;
+        }
+        
+        renderJourneyContent();
+        renderEncounterContent();
+        
+        // Switch to encounter tab
+        const encounterTab = document.querySelector('.tab-button[data-tab="encounter"]');
+        if (encounterTab) encounterTab.click();
+    }
+    
+    function completeJourney() {
+        if (travelInterval) {
+            clearInterval(travelInterval);
+            travelInterval = null;
+        }
+        
+        // Complete the travel
+        gameState.currentSystemIndex = destinationIndex;
+        gameState.location = toSystem.name;
+        gameState.day += tripDuration;
+        window.selectedDestination = null;
+        
+        // Return to main menu
+        showMainMenu();
+    }
+    
+    function renderTravelScreen() {
+        showMenu({
+            title: 'TRAVELING TO ' + toSystem.name.toUpperCase(),
+            content: '<div id="travel-encounter-content"></div>',
+            buttons: []
+        });
+        
+        const contentContainer = document.getElementById('travel-encounter-content');
+        if (!contentContainer) return;
+        
+        // Create tabs
+        const tabs = createTabs([
+            {
+                label: 'Journey',
+                id: 'journey',
+                content: getJourneyContent(),
+                onActivate: renderJourneyContent
+            },
+            {
+                label: 'Encounter',
+                id: 'encounter',
+                content: getEncounterContent(),
+                onActivate: renderEncounterContent
+            }
+        ]);
+        
+        contentContainer.appendChild(tabs);
+    }
+    
+    renderTravelScreen();
+}
+
+// Removed drag and scroll functions - map is now always centered on player
+
+// ===== SHIPYARD FUNCTIONS =====
+
+function repairShip() {
+    const repairCost = (gameState.ship.maxHull - gameState.ship.hull) * 5;
+    if (gameState.spendCredits(repairCost)) {
+        gameState.ship.hull = gameState.ship.maxHull;
+        showMainMenu();
+    }
+}
+
+function refuelShip() {
+    const refuelCost = (gameState.ship.maxFuel - gameState.ship.fuel) * 2;
+    if (gameState.spendCredits(refuelCost)) {
+        gameState.ship.fuel = gameState.ship.maxFuel;
+        showMainMenu();
+    }
+}
+
+function buyShip(index) {
+    const ships = [
+        { name: 'Scout Ship', type: 'Scout', hull: 80, fuel: 150, cargo: 30, value: 8000, weapons: 3 },
+        { name: 'Cargo Hauler', type: 'Freighter', hull: 120, fuel: 100, cargo: 100, value: 15000, weapons: 1 },
+        { name: 'Battle Cruiser', type: 'Combat', hull: 200, fuel: 120, cargo: 40, value: 25000, weapons: 8 }
+    ];
+    
+    const shipTemplate = ships[index];
+    if (gameState.spendCredits(shipTemplate.value)) {
+        const newShip = {
+            name: shipTemplate.name,
+            type: shipTemplate.type,
+            hull: shipTemplate.hull,
+            maxHull: shipTemplate.hull,
+            fuel: shipTemplate.fuel,
+            maxFuel: shipTemplate.fuel,
+            cargo: {},
+            maxCargo: shipTemplate.cargo,
+            value: shipTemplate.value,
+            weapons: shipTemplate.weapons
+        };
+        gameState.ownedShips.push(newShip);
+        showMainMenu();
+    }
+}
+
+function switchToShip(index) {
+    gameState.ship = gameState.ownedShips[index];
+    showMainMenu();
+}
+
+function sellShip(index) {
+    if (gameState.ownedShips.length <= 1) return;
+    
+    const ship = gameState.ownedShips[index];
+    gameState.addCredits(ship.value);
+    gameState.ownedShips.splice(index, 1);
+    showMainMenu();
+}
+
+// ===== MARKET FUNCTIONS =====
+
+function buyGood(good, price, quantity = 1) {
+    const currentSystem = gameState.starSystems[gameState.currentSystemIndex];
+    const available = currentSystem.cargo[good] || 0;
+    
+    // Can't buy more than available
+    const actualQuantity = Math.min(quantity, available);
+    
+    if (actualQuantity <= 0) return;
+    
+    const totalCost = price * actualQuantity;
+    if (gameState.spendCredits(totalCost) && gameState.addCargo(good, actualQuantity)) {
+        currentSystem.cargo[good] -= actualQuantity;
+        showMainMenu();
+    }
+}
+
+function sellGood(good, price, quantity = 1) {
+    const currentSystem = gameState.starSystems[gameState.currentSystemIndex];
+    
+    if (gameState.removeCargo(good, quantity)) {
+        gameState.addCredits(price * quantity);
+        currentSystem.cargo[good] = (currentSystem.cargo[good] || 0) + quantity;
+        showMainMenu();
+    }
+}
+
+// ===== INITIALIZATION =====
+
+// Start the game when page loads
+window.addEventListener('DOMContentLoaded', () => {
+    showTitleScreen();
+});
