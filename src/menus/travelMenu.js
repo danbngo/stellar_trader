@@ -146,7 +146,7 @@ function updateTravelMap() {
                     line.setAttribute('y1', pos1.top.toString());
                     line.setAttribute('x2', pos2.left.toString());
                     line.setAttribute('y2', pos2.top.toString());
-                    line.setAttribute('stroke', '#444');
+                    line.setAttribute('stroke', '#222');
                     line.setAttribute('stroke-width', '1');
                     line.setAttribute('opacity', '0.3');
                     svg.appendChild(line);

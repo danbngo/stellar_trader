@@ -438,7 +438,7 @@ export function createTopButtons(callbacks = {}) {
     
     // Determine system button icon and callback based on active journey
     const hasActiveJourney = window.gameState?.activeJourney;
-    const systemIcon = hasActiveJourney ? '🏙️' : '⭐'; // City when docked, star when traveling
+    const systemIcon = hasActiveJourney ? '⭐' : '🏙️'; // Star when traveling, city when docked
     const systemCallback = hasActiveJourney 
         ? () => import('./menus/travelEncounterMenu.js').then(m => m.showTravelEncounterMenu())
         : callbacks.showSystem;
@@ -484,7 +484,7 @@ export function createTopButtons(callbacks = {}) {
             ce({
                 tag: 'button',
                 className: window.currentViewMode === 'options' ? 'icon-button active' : 'icon-button',
-                html: '⚙️', // Settings gear emoji
+                html: '⚙', // Settings gear emoji
                 attrs: { title: 'Options', 'data-mode': 'options' },
                 onclick: () => switchViewMode('options', callbacks)
             })

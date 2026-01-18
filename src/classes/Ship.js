@@ -15,14 +15,34 @@ export class Ship {
     }
     
     get value() {
-        // Calculate ship value based on stats
-        const baseValue = this.maxHull * 20;
-        const shieldsValue = this.maxShields * 15;
-        const fuelValue = this.maxFuel * 10;
-        const cargoValue = this.maxCargo * 50;
-        const speedValue = this.speed * 500;
-        const weaponsValue = this.weapons * 500;
-        return baseValue + shieldsValue + fuelValue + cargoValue + speedValue + weaponsValue;
+        // Calculate ship value based on stats with exponential scaling
+        // Use AVERAGE_SHIP as baseline for exponential calculation
+        const AVERAGE_SHIP = {
+            hull: 135,
+            shields: 76.25,
+            fuel: 111.25,
+            cargo: 36.25,
+            speed: 1.625,
+            weapons: 6.125
+        };
+        
+        // Calculate ratios vs average ship
+        const hullRatio = this.maxHull / AVERAGE_SHIP.hull;
+        const shieldsRatio = this.maxShields / AVERAGE_SHIP.shields;
+        const fuelRatio = this.maxFuel / AVERAGE_SHIP.fuel;
+        const cargoRatio = this.maxCargo / AVERAGE_SHIP.cargo;
+        const speedRatio = this.speed / AVERAGE_SHIP.speed;
+        const weaponsRatio = this.weapons / AVERAGE_SHIP.weapons;
+        
+        // Square the ratios for exponential scaling (good ships peak sharply, bad ships tank)
+        const baseValue = this.maxHull * 20 * Math.pow(hullRatio, 1.5);
+        const shieldsValue = this.maxShields * 15 * Math.pow(shieldsRatio, 1.5);
+        const fuelValue = this.maxFuel * 10 * Math.pow(fuelRatio, 1.5);
+        const cargoValue = this.maxCargo * 50 * Math.pow(cargoRatio, 1.5);
+        const speedValue = this.speed * 500 * Math.pow(speedRatio, 1.5);
+        const weaponsValue = this.weapons * 500 * Math.pow(weaponsRatio, 1.5);
+        
+        return Math.round(baseValue + shieldsValue + fuelValue + cargoValue + speedValue + weaponsValue);
     }
     
     damage(amount) {
