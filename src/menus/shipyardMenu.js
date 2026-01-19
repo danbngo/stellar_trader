@@ -2,7 +2,7 @@ import { ce, createDataTable, createButton, statColorSpan } from '../ui.js';
 import { generateShip } from '../generators/shipGenerators.js';
 import { SCOUT, FREIGHTER, DESTROYER, AVERAGE_SHIP } from '../defs/SHIP_TYPES.js';
 
-let shipyardMode = 'buy'; // 'buy' or 'sell'
+let shipyardMode = 'sell'; // 'buy' or 'sell'
 
 export function getShipyardContent() {
     return `

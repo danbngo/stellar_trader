@@ -20,11 +20,6 @@ export const PIRATE_ENCOUNTER = new EncounterType(
         const transmissionText = `
             <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ PIRATE TRANSMISSION</div>
             <div style="margin-bottom: 10px;">"Hand over <span style="color: #ff0;">${bribeAmount} credits</span> or prepare to be boarded!"</div>
-            <div style="font-size: 0.9em; color: #888;">
-                Pirate Ship: ${encounterShip.name}<br>
-                Weapons: ${encounterShip.weapons}<br>
-                Hull: ${encounterShip.hull}/${encounterShip.maxHull}
-            </div>
         `;
         
         return {
@@ -170,11 +165,6 @@ export const POLICE_ENCOUNTER = new EncounterType(
         const transmissionText = `
             <div style="color: #09f; font-weight: bold; margin-bottom: 10px;">🚨 POLICE TRANSMISSION</div>
             <div style="margin-bottom: 10px;">"This is system security. We're conducting routine inspections. Prepare to be boarded for a cargo scan."</div>
-            <div style="font-size: 0.9em; color: #888;">
-                Police Ship: ${encounterShip.name}<br>
-                Weapons: ${encounterShip.weapons}<br>
-                ⚠️ Refusing inspection will be considered hostile.
-            </div>
         `;
         
         return {

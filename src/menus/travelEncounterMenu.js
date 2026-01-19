@@ -113,11 +113,33 @@ function renderJourneyContent() {
     
     container.innerHTML = '';
     
+    const fromSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
+    const isDestVisited = window.gameState.visitedStarSystems.has(toSystem);
+    
+    // Show ? for region stats if destination not visited
+    let piracyDisplay, policeDisplay, merchantsDisplay;
+    if (isDestVisited) {
+        piracyDisplay = statColorSpan((avgPiracy / 5).toFixed(1) + 'x', 1 / (avgPiracy / 5));
+        policeDisplay = statColorSpan((avgPolice / 5).toFixed(1) + 'x', avgPolice / 5);
+        merchantsDisplay = statColorSpan((avgMerchants / 5).toFixed(1) + 'x', avgMerchants / 5);
+    } else {
+        piracyDisplay = '?';
+        policeDisplay = '?';
+        merchantsDisplay = '?';
+    }
+    
     const layout = createTwoColumnLayout({
         leftColumn: ce({
             className: 'stats-group',
             children: [
                 ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Travel Progress' }),
+                ce({
+                    className: 'stat-line',
+                    children: [
+                        ce({ className: 'stat-label', text: 'Origin:' }),
+                        ce({ className: 'stat-value', text: fromSystem.name })
+                    ]
+                }),
                 ce({
                     className: 'stat-line',
                     children: [
@@ -162,7 +184,7 @@ function renderJourneyContent() {
                         ce({ className: 'stat-label', text: 'Piracy Level:' }),
                         ce({ 
                             className: 'stat-value', 
-                            html: statColorSpan((avgPiracy / 5).toFixed(1) + 'x', 1 / (avgPiracy / 5))
+                            html: piracyDisplay
                         })
                     ]
                 }),
@@ -172,7 +194,7 @@ function renderJourneyContent() {
                         ce({ className: 'stat-label', text: 'Police Level:' }),
                         ce({ 
                             className: 'stat-value', 
-                            html: statColorSpan((avgPolice / 5).toFixed(1) + 'x', avgPolice / 5)
+                            html: policeDisplay
                         })
                     ]
                 }),
@@ -182,7 +204,7 @@ function renderJourneyContent() {
                         ce({ className: 'stat-label', text: 'Merchants Level:' }),
                         ce({ 
                             className: 'stat-value', 
-                            html: statColorSpan((avgMerchants / 5).toFixed(1) + 'x', avgMerchants / 5)
+                            html: merchantsDisplay
                         })
                     ]
                 })
@@ -226,7 +248,9 @@ function renderEncounterContent() {
             cells: [
                 ship.name,
                 ship.type,
-                `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields} | Weapons: ${weapons}`
+                `${ship.hull}/${ship.maxHull}`,
+                `${ship.shields}/${ship.maxShields}`,
+                weapons.toString()
             ],
             data: ship
         };
@@ -234,19 +258,25 @@ function renderEncounterContent() {
     
     // Encounter ship rows
     const encounterRows = [activeEncounter].map(ship => {
-        let detailsDisplay = '';
         const encounterTypeName = ship.encounterType ? ship.encounterType.name : ship.type;
         
-        detailsDisplay = `Hull: ${ship.hull}/${ship.maxHull} | Shields: ${ship.shields}/${ship.maxShields} | Weapons: ${ship.weapons}`;
+        const cells = [
+            encounterTypeName,
+            `${ship.hull}/${ship.maxHull}`,
+            `${ship.shields}/${ship.maxShields}`,
+            ship.weapons.toString()
+        ];
         
         // Add cargo for merchants
         if (ship.encounterType && ship.encounterType.name === 'Merchant') {
             const totalCargo = ship.getTotalCargo();
-            detailsDisplay += ` | Cargo: ${totalCargo}/${ship.maxCargo}`;
+            cells.push(`${totalCargo}/${ship.maxCargo}`);
+        } else {
+            cells.push('-');
         }
         
         return {
-            cells: [ship.name, encounterTypeName, detailsDisplay],
+            cells,
             data: ship
         };
     });
@@ -258,7 +288,7 @@ function renderEncounterContent() {
                 createDataTable({
                     id: 'player-ships-encounter',
                     scrollable: true,
-                    headers: ['Ship Name', 'Type', 'Status'],
+                    headers: ['Ship Name', 'Type', 'Hull', 'Shields', 'Weapons'],
                     rows: playerShipRows,
                     onSelect: () => {}
                 })
@@ -270,7 +300,7 @@ function renderEncounterContent() {
                 createDataTable({
                     id: 'encountered-ships-active',
                     scrollable: true,
-                    headers: ['Ship Name', 'Type', 'Status'],
+                    headers: ['Type', 'Hull', 'Shields', 'Weapons', 'Cargo'],
                     rows: encounterRows,
                     onSelect: () => {}
                 })
