@@ -176,26 +176,17 @@ function renderSkillButtons() {
         }));
     }
     
-    // Add Begin Journey and Back buttons
+    // Add Begin Game and Back buttons
     buttonContainer.appendChild(createButton({
-        text: 'Begin Journey',
+        text: 'Begin Game',
         action: () => {
             // Save the captain name before starting
             const nameInput = document.getElementById('captain-name-input');
             if (nameInput && nameInput.value.trim()) {
                 window.gameState.captain.name = nameInput.value.trim();
             }
-            
-            // Check if there's an active journey
-            if (window.gameState.activeJourney) {
-                // Resume the active journey
-                const { destIndex, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters } = window.gameState.activeJourney;
-                import('./travelEncounterMenu.js').then(m => {
-                    m.showTravelEncounterMenu(destIndex, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters);
-                });
-            } else {
-                showMainMenu();
-            }
+
+            showMainMenu();
         }
     }));
     

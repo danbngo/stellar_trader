@@ -1,4 +1,4 @@
-import { SHUTTLE, SCOUT, FIGHTER, FREIGHTER, CORVETTE, DESTROYER, CRUISER, BATTLESHIP } from './SHIP_TYPES.js';
+import { SHUTTLE, SCOUT, FIGHTER, FREIGHTER, CORVETTE, DESTROYER, CRUISER } from './SHIP_TYPES.js';
 
 const NPC_ENGAGE_DISTANCE_AU = 0.25;
 const NPC_FIRE_RANGE_AU = 0.65;
@@ -46,18 +46,29 @@ function stopActiveCombatEncounter() {
     }
 }
 
+function getEncounterController() {
+    return window.gameState?.encounterController || null;
+}
+
+function resolveActiveEncounter() {
+    const controller = getEncounterController();
+    if (controller && controller.resolveEncounter) {
+        controller.resolveEncounter();
+    }
+}
+
 function setEncounterTransmission(encounterShip, html) {
     encounterShip.transmissionText = html;
-    const transmissionDiv = document.getElementById('encounter-transmission');
-    if (transmissionDiv) {
-        transmissionDiv.innerHTML = html;
+    const controller = getEncounterController();
+    if (controller && controller.updateTransmission) {
+        controller.updateTransmission(html);
     }
 }
 
 function startHostileCombat(encounterShip, playerShip) {
     stopActiveCombatEncounter();
 
-    const menu = window.travelEncounterMenuInstance;
+    const controller = getEncounterController();
     const combatSkill = window.gameState?.captain?.skills?.combat || 0;
 
     if (!encounterShip.combatState) {
@@ -81,8 +92,8 @@ function startHostileCombat(encounterShip, playerShip) {
     };
 
     const refreshUi = () => {
-        if (menu && menu.refreshEncounter) {
-            menu.refreshEncounter();
+        if (controller && controller.refreshEncounter) {
+            controller.refreshEncounter();
         }
     };
 
@@ -93,10 +104,7 @@ function startHostileCombat(encounterShip, playerShip) {
             {
                 text: 'Continue Journey',
                 handler: () => {
-                    const activeMenu = window.travelEncounterMenuInstance;
-                    if (activeMenu && activeMenu.resolveEncounter) {
-                        activeMenu.resolveEncounter();
-                    }
+                    resolveActiveEncounter();
                 }
             }
         ];
@@ -200,8 +208,6 @@ function startHostileCombat(encounterShip, playerShip) {
     }, COMBAT_TICK_MS);
 }
 
-export { stopActiveCombatEncounter };
-
 export class EncounterType {
     constructor(name, description, shipTypes, onGreet) {
         this.name = name;
@@ -232,27 +238,19 @@ export const PIRATE_ENCOUNTER = new EncounterType(
                     handler: () => {
                         if (window.gameState.captain.credits >= bribeAmount) {
                             window.gameState.addCredits(-bribeAmount);
-                            encounterShip.transmissionText = `
+                            setEncounterTransmission(encounterShip, `
                                 <div style="color: #0f0; font-weight: bold; margin-bottom: 10px;">✓ BRIBE ACCEPTED</div>
                                 <div>"Pleasure doing business with you. Move along."</div>
-                            `;
+                            `);
                             // Auto-resolve after accepting bribe
                             setTimeout(() => {
-                                const menu = window.travelEncounterMenuInstance;
-                                if (menu && menu.resolveEncounter) {
-                                    menu.resolveEncounter();
-                                }
+                                resolveActiveEncounter();
                             }, 2000);
                         } else {
-                            encounterShip.transmissionText = `
+                            setEncounterTransmission(encounterShip, `
                                 <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ INSUFFICIENT CREDITS</div>
                                 <div>"You don't have enough credits! Prepare to die!"</div>
-                            `;
-                        }
-                        // Update the transmission display
-                        const transmissionDiv = document.getElementById('encounter-transmission');
-                        if (transmissionDiv && encounterShip.transmissionText) {
-                            transmissionDiv.innerHTML = encounterShip.transmissionText;
+                            `);
                         }
                     }
                 },
@@ -297,51 +295,38 @@ export const MERCHANT_ENCOUNTER = new EncounterType(
                         if (window.gameState.captain.credits >= totalPrice) {
                             if (playerShip.addCargo(tradeGood, quantity)) {
                                 window.gameState.addCredits(-totalPrice);
-                                encounterShip.transmissionText = `
+                                setEncounterTransmission(encounterShip, `
                                     <div style="color: #0f0; font-weight: bold; margin-bottom: 10px;">✓ TRADE COMPLETE</div>
                                     <div>"Pleasure doing business! Safe travels, friend."</div>
                                     <div style="margin-top: 10px; color: #0f0;">Acquired ${quantity} units of ${tradeGood}</div>
-                                `;
+                                `);
                             } else {
-                                encounterShip.transmissionText = `
+                                setEncounterTransmission(encounterShip, `
                                     <div style="color: #f80; font-weight: bold; margin-bottom: 10px;">⚠️ INSUFFICIENT CARGO SPACE</div>
                                     <div>"Looks like you don't have room for that. Maybe next time!"</div>
-                                `;
+                                `);
                             }
                         } else {
-                            encounterShip.transmissionText = `
+                            setEncounterTransmission(encounterShip, `
                                 <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ INSUFFICIENT CREDITS</div>
                                 <div>"You don't have enough credits. Come back when you have the funds!"</div>
-                            `;
-                        }
-                        // Update the transmission display
-                        const transmissionDiv = document.getElementById('encounter-transmission');
-                        if (transmissionDiv && encounterShip.transmissionText) {
-                            transmissionDiv.innerHTML = encounterShip.transmissionText;
+                            `);
                         }
                     }
                 },
                 {
                     text: 'Decline Trade',
                     handler: () => {
-                        encounterShip.transmissionText = `
+                        setEncounterTransmission(encounterShip, `
                             <div style="color: #888; font-weight: bold; margin-bottom: 10px;">TRADE DECLINED</div>
                             <div>"No problem. Safe travels!"</div>
-                        `;
-                        // Update the transmission display
-                        const transmissionDiv = document.getElementById('encounter-transmission');
-                        if (transmissionDiv && encounterShip.transmissionText) {
-                            transmissionDiv.innerHTML = encounterShip.transmissionText;
-                        }
+                        `);
                     }
                 },
                 {
                     text: 'Ignore and Continue',
                     handler: () => {
-                        const menu = window.travelEncounterMenuInstance;
-                        if (menu && menu.resolveEncounter) {
-                            menu.resolveEncounter();
-                        }
+                        resolveActiveEncounter();
                     }
                 }
             ]
@@ -367,21 +352,13 @@ export const POLICE_ENCOUNTER = new EncounterType(
                     text: 'Allow Inspection',
                     handler: () => {
                         // Check for contraband (for future implementation)
-                        encounterShip.transmissionText = `
+                        setEncounterTransmission(encounterShip, `
                             <div style="color: #0f0; font-weight: bold; margin-bottom: 10px;">✓ INSPECTION COMPLETE</div>
                             <div>"Everything checks out. You're clear to proceed. Safe travels."</div>
-                        `;
-                        // Update the transmission display
-                        const transmissionDiv = document.getElementById('encounter-transmission');
-                        if (transmissionDiv && encounterShip.transmissionText) {
-                            transmissionDiv.innerHTML = encounterShip.transmissionText;
-                        }
+                        `);
                         // Auto-resolve after inspection
                         setTimeout(() => {
-                            const menu = window.travelEncounterMenuInstance;
-                            if (menu && menu.resolveEncounter) {
-                                menu.resolveEncounter();
-                            }
+                            resolveActiveEncounter();
                         }, 2000);
                     }
                 },

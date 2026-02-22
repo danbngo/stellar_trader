@@ -26,8 +26,9 @@ export class GameState {
         this.seenStarSystems = new Set();
         this.visitedStarSystems = new Set();
         
-        // Active journey state
-        this.activeJourney = null; // { destIndex, toSystem, tripDuration, fuelNeeded, currentDay, encounters, etc. }
+        // Active controller/state hooks for runtime systems (3D travel/combat UI, etc.)
+        this.encounterController = null;
+        this.pendingWarp = null;
         
         // Mark starting system and its neighbors as seen
         const startSystem = this.starSystems[this.currentSystemIndex];
@@ -138,5 +139,21 @@ export class GameState {
      */
     advanceTime(days) {
         this.currentDate.setDate(this.currentDate.getDate() + days);
+    }
+
+    setEncounterController(controller) {
+        this.encounterController = controller;
+    }
+
+    clearEncounterController() {
+        this.encounterController = null;
+    }
+
+    setPendingWarp(pendingWarp) {
+        this.pendingWarp = pendingWarp;
+    }
+
+    clearPendingWarp() {
+        this.pendingWarp = null;
     }
 }

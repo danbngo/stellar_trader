@@ -1,9 +1,5 @@
 import { ce, createButton, createTwoColumnLayout, createDataTable, statColorSpan } from '../ui.js';
 import { calculateDistance } from '../utils.js';
-import { showMainMenu } from './mainMenu.js';
-import { generateShip } from '../generators/shipGenerators.js';
-import { showTravelEncounterMenu } from './travelEncounterMenu.js';
-import { PIRATE_ENCOUNTER, MERCHANT_ENCOUNTER, POLICE_ENCOUNTER } from '../defs/ENCOUNTER_TYPES.js';
 
 let mapZoom = 1.0; // Current zoom level (0.5 to 2.0)
 
@@ -366,90 +362,51 @@ function renderTravelButtons() {
         const systemName = (isVisited || isSeen) ? system.name : 'Unknown System';
         
         buttonsDiv.appendChild(createButton({
-            text: `Travel to ${systemName}`,
-            action: () => travelToSystem(index),
+            text: `Warp to ${systemName}`,
+            action: () => initiateWarpToSystem(index),
             disabled: !canReach,
             disabledReason: canReach ? '' : `Not enough fuel (need ${window.selectedDestination.fuelNeeded})`
         }));
     }
 }
 
-function travelToSystem(index) {
+function initiateWarpToSystem(index) {
     if (!window.selectedDestination) return;
     
     const { fuelNeeded, canReach, tripDuration } = window.selectedDestination;
     
-    if (canReach) {
-        const fromSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
-        const toSystem = window.gameState.starSystems[index];
-        
-        // Mark destination as visited and add its neighbors to seen systems
+    if (!canReach) return;
+
+    const fromSystem = window.gameState.starSystems[window.gameState.currentSystemIndex];
+    const toSystem = window.gameState.starSystems[index];
+
+    window.gameState.setPendingWarp({
+        fromIndex: window.gameState.currentSystemIndex,
+        destinationIndex: index,
+        fromSystem,
+        toSystem,
+        tripDuration,
+        fuelNeeded
+    });
+
+    if (typeof window.startWarpTravel === 'function') {
+        window.startWarpTravel(window.gameState.pendingWarp);
+        return;
+    }
+
+    if (window.gameState.useFuel(fuelNeeded)) {
+        window.gameState.currentSystemIndex = index;
+        window.gameState.location = toSystem.name;
+        window.gameState.advanceTime(tripDuration);
         window.gameState.visitedStarSystems.add(toSystem);
         window.gameState.seenStarSystems.add(toSystem);
         toSystem.neighborSystems.forEach(neighbor => {
             window.gameState.seenStarSystems.add(neighbor);
         });
-        
-        // Calculate encounter chance
-        const avgPiracy = (fromSystem.piracyLevel + toSystem.piracyLevel) / 2;
-        const avgPolice = (fromSystem.policeLevel + toSystem.policeLevel) / 2;
-        const avgMerchants = (fromSystem.merchantsLevel + toSystem.merchantsLevel) / 2;
-        
-        // Generate encounters based on trip duration and regional levels
-        const encounters = [];
-        
-        // Multiple chances for encounters based on trip duration
-        const encounterChecks = Math.max(1, Math.floor(tripDuration / 2));
-        
-        for (let i = 0; i < encounterChecks; i++) {
-            // Chance for pirate encounter based on piracy level (piracyLevel/5 = multiplier)
-            if (Math.random() * 20 < avgPiracy) {
-                const pirateShipType = PIRATE_ENCOUNTER.shipTypes[Math.floor(Math.random() * PIRATE_ENCOUNTER.shipTypes.length)];
-                const pirateShip = generateShip(pirateShipType);
-                pirateShip.encounterType = PIRATE_ENCOUNTER;
-                encounters.push(pirateShip);
-            }
-            
-            // Chance for police encounter based on police level
-            if (Math.random() * 20 < avgPolice) {
-                const policeShipType = POLICE_ENCOUNTER.shipTypes[Math.floor(Math.random() * POLICE_ENCOUNTER.shipTypes.length)];
-                const policeShip = generateShip(policeShipType);
-                policeShip.encounterType = POLICE_ENCOUNTER;
-                encounters.push(policeShip);
-            }
-            
-            // Chance for merchant encounter based on merchants level
-            if (Math.random() * 20 < avgMerchants) {
-                const merchantShipType = MERCHANT_ENCOUNTER.shipTypes[Math.floor(Math.random() * MERCHANT_ENCOUNTER.shipTypes.length)];
-                const merchantShip = generateShip(merchantShipType);
-                merchantShip.encounterType = MERCHANT_ENCOUNTER;
-                // Add cargo to merchant ships
-                const goods = ['food', 'water', 'air'];
-                goods.forEach(good => {
-                    const amount = Math.floor(Math.random() * 50);
-                    if (amount > 0) {
-                        merchantShip.addCargo(good, amount);
-                    }
-                });
-                encounters.push(merchantShip);
-            }
-        }
-        
-        // Store journey in gameState (fuel not yet deducted)
-        window.gameState.activeJourney = {
-            destIndex: index,
-            toSystem,
-            tripDuration,
-            fuelNeeded,
-            currentDay: 0,
-            encounters,
-            avgPiracy,
-            avgPolice,
-            avgMerchants,
-            fuelDeducted: false
-        };
-        
-        // Show travel encounter menu
-        showTravelEncounterMenu(index, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, encounters);
+        window.selectedDestination = null;
+        window.gameState.clearPendingWarp();
+        updateTravelMap();
+        updateDestinationInfo();
+        renderTravelButtons();
     }
 }

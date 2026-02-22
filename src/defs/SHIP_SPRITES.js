@@ -63,22 +63,42 @@ export function getCloseRangeSprite(ship) {
     if (view === 'topside') {
         const facing = pickByHash(['right', 'left', 'down', 'up'], seed >> 2);
         console.log('[ShipSprites] Topside facing selected', { facing });
-        return SHIP_SPRITES.topside[facing].join('\n');
+        const sprite = SHIP_SPRITES.topside[facing].join('\n');
+        const lines = sprite.split('\n');
+        const spriteHeight = lines.length;
+        const spriteWidth = lines.reduce((maxWidth, line) => Math.max(maxWidth, line.length), 0);
+        console.log('[ShipSprites] Sprite size computed', { spriteWidth, spriteHeight, largerThanOneByOne: spriteWidth > 1 || spriteHeight > 1 });
+        return sprite;
     }
 
     if (view === 'side') {
         const facing = pickByHash(['left', 'right', 'upBellyLeft', 'upBellyRight', 'downBellyRight', 'downBellyLeft'], seed >> 2);
         console.log('[ShipSprites] Side facing selected', { facing });
-        return SHIP_SPRITES.side[facing].join('\n');
+        const sprite = SHIP_SPRITES.side[facing].join('\n');
+        const lines = sprite.split('\n');
+        const spriteHeight = lines.length;
+        const spriteWidth = lines.reduce((maxWidth, line) => Math.max(maxWidth, line.length), 0);
+        console.log('[ShipSprites] Sprite size computed', { spriteWidth, spriteHeight, largerThanOneByOne: spriteWidth > 1 || spriteHeight > 1 });
+        return sprite;
     }
 
     if (view === 'nose') {
         const belly = pickByHash(['bellyDown', 'bellyLeft', 'bellyRight', 'bellyUp'], seed >> 2);
         console.log('[ShipSprites] Nose belly orientation selected', { belly });
-        return SHIP_SPRITES.nose[belly].join('\n');
+        const sprite = SHIP_SPRITES.nose[belly].join('\n');
+        const lines = sprite.split('\n');
+        const spriteHeight = lines.length;
+        const spriteWidth = lines.reduce((maxWidth, line) => Math.max(maxWidth, line.length), 0);
+        console.log('[ShipSprites] Sprite size computed', { spriteWidth, spriteHeight, largerThanOneByOne: spriteWidth > 1 || spriteHeight > 1 });
+        return sprite;
     }
 
     const belly = pickByHash(['bellyDown', 'bellyLeft', 'bellyRight', 'bellyUp'], seed >> 2);
     console.log('[ShipSprites] Back belly orientation selected', { belly });
-    return SHIP_SPRITES.back[belly].join('\n');
+    const sprite = SHIP_SPRITES.back[belly].join('\n');
+    const lines = sprite.split('\n');
+    const spriteHeight = lines.length;
+    const spriteWidth = lines.reduce((maxWidth, line) => Math.max(maxWidth, line.length), 0);
+    console.log('[ShipSprites] Sprite size computed', { spriteWidth, spriteHeight, largerThanOneByOne: spriteWidth > 1 || spriteHeight > 1 });
+    return sprite;
 }
