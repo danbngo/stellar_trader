@@ -1,0 +1,93 @@
+wings or noses:
+▲ ▼ ◀ ▶ 
+◣ ◢ ◤ ◥ 
+
+█ = body
+
+ship's wings should be darker than its chassis/nose.
+
+CAMERA POINTED AT SHIP'S TOPSIDE:
+
+facing right with respect to player's camera:
+◣
+██▶
+◤
+
+facing left:
+  ◢
+◀██
+  ◥
+
+facing down:
+◥██◤
+ ◥◤
+
+facing up:
+ ◢◣
+◢██◣
+
+CAMERA POINTED AT SHIP'S UNDERSIDE:
+
+same as ship viewed from the top but slightly darker
+
+CAMERA POINTED AT SHIP'S SIDE (either left or right side):
+
+facing left:
+◢██
+  ◥
+
+facing right:
+██◣
+◤
+
+facing up (with belly oriented to the left of screen):
+ ◣
+◢██
+
+facing up (with belly oriented to the right of screen):
+ ◢
+██◣
+
+facing down (with belly oriented to the right of screen):
+██◤
+ ◥
+
+facing down (with belly oriented to the left of screen):
+◢██
+ ◤
+
+CAMERA POINTED AT SHIP'S nose
+
+belly pointed down:
+◢█v█◣
+
+belly pointed left:
+ ◣
+<█
+ ◤
+
+belly pointed right:
+◢
+█>
+◥
+
+belly pointed up:
+◥█^█◤
+
+CAMERA POINTED AT SHIP'S BACK/BUTT:
+
+belly pointed down:
+◢███◣
+
+belly pointed left:
+◣
+██
+◤
+
+belly poitned right:
+◢
+██
+◥
+
+belly pointed up:
+◥███◤

@@ -40,13 +40,14 @@ export function renderShipyardTable() {
             id: 'your-ships',
             scrollable: true,
             autoSelectFirst: true,
-            headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Status'],
+            headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Fuel', 'Status'],
             rows: window.gameState.ownedShips.map((ship, idx) => {
                 // Calculate ratios vs average ship
                 const hullRatio = ship.maxHull / AVERAGE_SHIP.hull;
                 const shieldsRatio = ship.maxShields / AVERAGE_SHIP.shields;
                 const speedRatio = ship.speed / AVERAGE_SHIP.speed;
                 const weaponsRatio = ship.weapons / AVERAGE_SHIP.weapons;
+                const fuelRatio = ship.maxFuel / AVERAGE_SHIP.fuel;
                 
                 return {
                     cells: [
@@ -56,6 +57,7 @@ export function renderShipyardTable() {
                         statColorSpan(`${ship.shields}/${ship.maxShields}`, shieldsRatio),
                         statColorSpan(`${ship.speed.toFixed(1)}x`, speedRatio),
                         statColorSpan(ship.weapons.toString(), weaponsRatio),
+                        statColorSpan(ship.maxFuel.toString(), fuelRatio),
                         ship === window.gameState.ship ? '<span style="color: #0bf;">ACTIVE</span>' : `${ship.value} cr`
                     ],
                     data: { ship, index: idx }
@@ -84,7 +86,7 @@ export function renderShipyardTable() {
             id: 'ships-for-sale',
             scrollable: true,
             autoSelectFirst: true,
-            headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Price'],
+            headers: ['Name', 'Type', 'Hull', 'Shields', 'Speed', 'Weapons', 'Fuel', 'Price'],
             rows: shipsForSale.map((ship, idx) => {
                 const basePrice = ship.value;
                 const effectivePrice = Math.round(basePrice * fees);
@@ -95,6 +97,7 @@ export function renderShipyardTable() {
                 const shieldsRatio = ship.maxShields / AVERAGE_SHIP.shields;
                 const speedRatio = ship.speed / AVERAGE_SHIP.speed;
                 const weaponsRatio = ship.weapons / AVERAGE_SHIP.weapons;
+                const fuelRatio = ship.maxFuel / AVERAGE_SHIP.fuel;
                 
                 return {
                     cells: [
@@ -104,6 +107,7 @@ export function renderShipyardTable() {
                         statColorSpan(ship.maxShields.toString(), shieldsRatio),
                         statColorSpan(`${ship.speed.toFixed(1)}x`, speedRatio),
                         statColorSpan(ship.weapons.toString(), weaponsRatio),
+                        statColorSpan(ship.maxFuel.toString(), fuelRatio),
                         statColorSpan(`${effectivePrice} cr`, priceRatio)
                     ],
                     data: { ship, index: idx, effectivePrice }

@@ -376,6 +376,18 @@ function startJourney() {
             isPaused = false;
             startTravelInterval();
             renderJourneyContent();
+            
+            // Refresh top buttons to show star icon instead of city icon
+            import('../ui.js').then(m => {
+                m.createTopButtons({
+                    showSystem: () => showTravelEncounterMenu(destinationIndex, toSystem, tripDuration, avgPiracy, avgPolice, avgMerchants, remainingEncounters),
+                    showFleet: () => import('./computerMenu.js').then(cm => cm.showFleetMenu()),
+                    showCaptain: () => import('./captainMenu.js').then(cm => cm.showCaptainMenu()),
+                    showJournal: () => import('./journalMenu.js').then(jm => jm.showJournalMenu()),
+                    showAssistant: () => import('./assistantMenu.js').then(am => am.showAssistantMenu()),
+                    showOptions: () => import('./optionsMenu.js').then(om => om.showOptionsMenu())
+                });
+            });
         }
     }
 }

@@ -75,12 +75,10 @@ function getSkillsContent() {
             ce({ 
                 tag: 'p', 
                 style: { marginBottom: '0.938rem' },
-                text: 'Skill Points Available: '
-            }),
-            ce({
-                tag: 'span',
-                id: 'skill-points-display',
-                text: window.gameState.captain.skillPoints.toString()
+                children: [
+                    ce({ tag: 'span', text: 'Skill Points Available: ' }),
+                    ce({ tag: 'span', id: 'skill-points-display', text: window.gameState.captain.skillPoints.toString() })
+                ]
             }),
             ce({ tag: 'div', id: 'skills-table-container', style: { marginTop: '0.938rem' } })
         ]
