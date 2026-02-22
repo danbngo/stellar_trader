@@ -1,5 +1,207 @@
 import { SHUTTLE, SCOUT, FIGHTER, FREIGHTER, CORVETTE, DESTROYER, CRUISER, BATTLESHIP } from './SHIP_TYPES.js';
 
+const NPC_ENGAGE_DISTANCE_AU = 0.25;
+const NPC_FIRE_RANGE_AU = 0.65;
+const NPC_FIRE_FOV_HALF_ANGLE_DEG = 20;
+const COMBAT_TICK_MS = 200;
+
+let activeCombatInterval = null;
+
+function toRadians(degrees) {
+    return (degrees * Math.PI) / 180;
+}
+
+function toDegrees(radians) {
+    return (radians * 180) / Math.PI;
+}
+
+function normalizeAngleDegrees(angle) {
+    let normalized = angle % 360;
+    if (normalized < 0) normalized += 360;
+    return normalized;
+}
+
+function shortestAngleDeltaDegrees(fromAngle, toAngle) {
+    const from = normalizeAngleDegrees(fromAngle);
+    const to = normalizeAngleDegrees(toAngle);
+    let delta = to - from;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    return delta;
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function getPlayerTurnRateDegPerSecond(playerShip) {
+    const shipSpeed = Math.max(0.5, playerShip.speed || 1);
+    return 90 * shipSpeed;
+}
+
+function stopActiveCombatEncounter() {
+    if (activeCombatInterval) {
+        clearInterval(activeCombatInterval);
+        activeCombatInterval = null;
+    }
+}
+
+function setEncounterTransmission(encounterShip, html) {
+    encounterShip.transmissionText = html;
+    const transmissionDiv = document.getElementById('encounter-transmission');
+    if (transmissionDiv) {
+        transmissionDiv.innerHTML = html;
+    }
+}
+
+function startHostileCombat(encounterShip, playerShip) {
+    stopActiveCombatEncounter();
+
+    const menu = window.travelEncounterMenuInstance;
+    const combatSkill = window.gameState?.captain?.skills?.combat || 0;
+
+    if (!encounterShip.combatState) {
+        const initialDistance = typeof encounterShip.distanceAU === 'number'
+            ? encounterShip.distanceAU
+            : 0.75;
+        encounterShip.combatState = {
+            npcX: initialDistance,
+            npcY: 0,
+            npcHeadingDeg: 180,
+            npcFireCooldownSec: 1.0,
+            playerX: 0,
+            playerY: 0
+        };
+    }
+
+    const state = encounterShip.combatState;
+
+    const updateDistanceFromState = () => {
+        encounterShip.distanceAU = Math.sqrt((state.npcX * state.npcX) + (state.npcY * state.npcY));
+    };
+
+    const refreshUi = () => {
+        if (menu && menu.refreshEncounter) {
+            menu.refreshEncounter();
+        }
+    };
+
+    const endCombat = (resultHtml) => {
+        stopActiveCombatEncounter();
+        setEncounterTransmission(encounterShip, resultHtml);
+        encounterShip.actions = [
+            {
+                text: 'Continue Journey',
+                handler: () => {
+                    const activeMenu = window.travelEncounterMenuInstance;
+                    if (activeMenu && activeMenu.resolveEncounter) {
+                        activeMenu.resolveEncounter();
+                    }
+                }
+            }
+        ];
+        refreshUi();
+    };
+
+    const playerFireHandler = () => {
+        const playerDamage = playerShip.getWeaponDamage(combatSkill);
+        const survived = encounterShip.damage(playerDamage);
+
+        updateDistanceFromState();
+
+        if (!survived) {
+            endCombat(`
+                <div style="color: #0f0; font-weight: bold; margin-bottom: 10px;">✓ ENEMY DESTROYED</div>
+                <div>You hit for ${playerDamage} damage and destroyed the hostile ship.</div>
+            `);
+            return;
+        }
+
+        setEncounterTransmission(encounterShip, `
+            <div style="color: #f80; font-weight: bold; margin-bottom: 10px;">⚔️ WEAPONS FIRE EXCHANGED</div>
+            <div>You hit for <span style="color:#ff0;">${playerDamage}</span> damage.</div>
+            <div>Enemy hull: ${encounterShip.hull.toFixed(0)}/${encounterShip.maxHull}</div>
+            <div>Enemy range: ${encounterShip.distanceAU.toFixed(2)} AU</div>
+        `);
+
+        refreshUi();
+    };
+
+    encounterShip.actions = [
+        {
+            text: 'Fire Weapons',
+            handler: playerFireHandler
+        }
+    ];
+
+    setEncounterTransmission(encounterShip, `
+        <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ COMBAT INITIATED</div>
+        <div>Hostile vessel is maneuvering to engagement distance.</div>
+    `);
+    refreshUi();
+
+    activeCombatInterval = setInterval(() => {
+        const dtSec = COMBAT_TICK_MS / 1000;
+
+        const toPlayerX = state.playerX - state.npcX;
+        const toPlayerY = state.playerY - state.npcY;
+        const distanceToPlayer = Math.sqrt((toPlayerX * toPlayerX) + (toPlayerY * toPlayerY));
+        const desiredHeadingDeg = normalizeAngleDegrees(toDegrees(Math.atan2(toPlayerY, toPlayerX)));
+
+        const maxTurnThisTick = getPlayerTurnRateDegPerSecond(playerShip) * dtSec;
+        const headingDelta = shortestAngleDeltaDegrees(state.npcHeadingDeg, desiredHeadingDeg);
+        const appliedTurn = clamp(headingDelta, -maxTurnThisTick, maxTurnThisTick);
+        state.npcHeadingDeg = normalizeAngleDegrees(state.npcHeadingDeg + appliedTurn);
+
+        if (distanceToPlayer > NPC_ENGAGE_DISTANCE_AU) {
+            const movementSpeedAuPerSec = Math.max(0.08, (encounterShip.speed || 1) * 0.15);
+            const step = movementSpeedAuPerSec * dtSec;
+            const headingRad = toRadians(state.npcHeadingDeg);
+            state.npcX += Math.cos(headingRad) * step;
+            state.npcY += Math.sin(headingRad) * step;
+        }
+
+        const newToPlayerX = state.playerX - state.npcX;
+        const newToPlayerY = state.playerY - state.npcY;
+        const newDistance = Math.sqrt((newToPlayerX * newToPlayerX) + (newToPlayerY * newToPlayerY));
+        const newDesiredHeading = normalizeAngleDegrees(toDegrees(Math.atan2(newToPlayerY, newToPlayerX)));
+        const fireAngleError = Math.abs(shortestAngleDeltaDegrees(state.npcHeadingDeg, newDesiredHeading));
+
+        state.npcFireCooldownSec -= dtSec;
+
+        const inFov = fireAngleError <= NPC_FIRE_FOV_HALF_ANGLE_DEG;
+        const inRange = newDistance <= NPC_FIRE_RANGE_AU;
+        const canFireNow = state.npcFireCooldownSec <= 0 && inRange && inFov;
+
+        if (canFireNow) {
+            state.npcFireCooldownSec = 1.25;
+            const npcDamage = encounterShip.getWeaponDamage(0);
+            const playerSurvived = playerShip.damage(npcDamage);
+
+            if (!playerSurvived) {
+                updateDistanceFromState();
+                endCombat(`
+                    <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">☠️ SHIP DESTROYED</div>
+                    <div>The hostile ship fired for ${npcDamage} damage and destroyed your vessel.</div>
+                `);
+                return;
+            }
+
+            setEncounterTransmission(encounterShip, `
+                <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ ENEMY FIRE</div>
+                <div>Enemy scored a hit for <span style="color:#ff0;">${npcDamage}</span> damage.</div>
+                <div>Enemy heading error: ${fireAngleError.toFixed(1)}°</div>
+                <div>Enemy range: ${newDistance.toFixed(2)} AU</div>
+            `);
+        }
+
+        updateDistanceFromState();
+        refreshUi();
+    }, COMBAT_TICK_MS);
+}
+
+export { stopActiveCombatEncounter };
+
 export class EncounterType {
     constructor(name, description, shipTypes, onGreet) {
         this.name = name;
@@ -57,16 +259,7 @@ export const PIRATE_ENCOUNTER = new EncounterType(
                 {
                     text: 'Refuse and Fight',
                     handler: () => {
-                        encounterShip.transmissionText = `
-                            <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ COMBAT INITIATED</div>
-                            <div>"Your funeral! All weapons, FIRE!"</div>
-                        `;
-                        // Update the transmission display
-                        const transmissionDiv = document.getElementById('encounter-transmission');
-                        if (transmissionDiv && encounterShip.transmissionText) {
-                            transmissionDiv.innerHTML = encounterShip.transmissionText;
-                        }
-                        // TODO: Implement combat system
+                        startHostileCombat(encounterShip, playerShip);
                     }
                 }
             ]
@@ -195,16 +388,7 @@ export const POLICE_ENCOUNTER = new EncounterType(
                 {
                     text: 'Refuse Inspection',
                     handler: () => {
-                        encounterShip.transmissionText = `
-                            <div style="color: #f44; font-weight: bold; margin-bottom: 10px;">⚠️ HOSTILE ACTION DETECTED</div>
-                            <div>"All units, engage target! Weapons hot!"</div>
-                        `;
-                        // Update the transmission display
-                        const transmissionDiv = document.getElementById('encounter-transmission');
-                        if (transmissionDiv && encounterShip.transmissionText) {
-                            transmissionDiv.innerHTML = encounterShip.transmissionText;
-                        }
-                        // TODO: Implement combat system
+                        startHostileCombat(encounterShip, playerShip);
                     }
                 }
             ]

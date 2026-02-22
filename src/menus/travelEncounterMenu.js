@@ -1,6 +1,8 @@
 import { ce, createButton, createTwoColumnLayout, createDataTable, showMenu, createTabs, statColorSpan } from '../ui.js';
 import { showMainMenu } from './mainMenu.js';
 import { ProgressBar } from '../classes/ProgressBar.js';
+import { stopActiveCombatEncounter } from '../defs/ENCOUNTER_TYPES.js';
+import { getCloseRangeSprite } from '../defs/SHIP_SPRITES.js';
 
 // Travel state variables (module-level to share across functions)
 let currentDay = 0;
@@ -14,6 +16,7 @@ let tripDuration = 0;
 let avgPiracy = 0;
 let avgPolice = 0;
 let avgMerchants = 0;
+const CLOSE_RANGE_SPRITE_AU = 0.5;
 
 export function showTravelEncounterMenu(destIndex, destination, duration, piracy, police, merchants, allEncounters) {
     // Reset state or restore from activeJourney
@@ -42,7 +45,10 @@ export function showTravelEncounterMenu(destIndex, destination, duration, piracy
     
     // Store reference to resolveEncounter so encounter handlers can access it
     window.travelEncounterMenuInstance = {
-        resolveEncounter
+        resolveEncounter,
+        refreshEncounter: () => {
+            renderEncounterContent();
+        }
     };
     
     renderTravelScreen();
@@ -280,6 +286,33 @@ function renderEncounterContent() {
             data: ship
         };
     });
+
+    const encounterDistanceAU = typeof activeEncounter.distanceAU === 'number'
+        ? activeEncounter.distanceAU
+        : CLOSE_RANGE_SPRITE_AU;
+    const shouldUseCloseSprite = encounterDistanceAU <= CLOSE_RANGE_SPRITE_AU;
+    const encounterVisual = shouldUseCloseSprite
+        ? getCloseRangeSprite(activeEncounter)
+        : '·';
+
+    console.log('[EncounterRender] Sprite gate check', {
+        shipName: activeEncounter.name,
+        shipType: activeEncounter.type,
+        encounterDistanceAU,
+        thresholdAU: CLOSE_RANGE_SPRITE_AU,
+        shouldUseCloseSprite,
+        hasTransmission: !!activeEncounter.transmissionText
+    });
+
+    if (shouldUseCloseSprite) {
+        console.log('[EncounterRender] Rendering close-range sprite', {
+            spriteLines: encounterVisual.split('\n')
+        });
+    } else {
+        console.log('[EncounterRender] Rendering fallback visual', {
+            fallback: encounterVisual
+        });
+    }
     
     const layout = createTwoColumnLayout({
         leftColumn: ce({
@@ -297,6 +330,33 @@ function renderEncounterContent() {
         rightColumn: ce({
             children: [
                 ce({ tag: 'h4', style: { marginBottom: '10px' }, text: 'Encountered Ship' }),
+                ce({
+                    className: 'stats-group',
+                    style: { marginBottom: '10px', textAlign: 'center' },
+                    children: [
+                        ce({
+                            tag: 'div',
+                            className: 'stat-line',
+                            children: [
+                                ce({ className: 'stat-label', text: 'Range:' }),
+                                ce({ className: 'stat-value', text: `${encounterDistanceAU.toFixed(2)} AU` })
+                            ]
+                        }),
+                        ce({
+                            tag: 'pre',
+                            style: {
+                                margin: '8px 0 0 0',
+                                color: '#ddd',
+                                fontFamily: 'monospace',
+                                fontSize: '14px',
+                                lineHeight: '1.1',
+                                display: 'inline-block',
+                                textAlign: 'left'
+                            },
+                            text: encounterVisual
+                        })
+                    ]
+                }),
                 createDataTable({
                     id: 'encountered-ships-active',
                     scrollable: true,
@@ -423,6 +483,8 @@ function resumeJourney() {
 }
 
 function resolveEncounter() {
+    stopActiveCombatEncounter();
+
     // Restore player shields after encounter
     window.gameState.ship.restoreShields();
     
@@ -482,6 +544,16 @@ function triggerEncounter() {
     window.gameState.ship.restoreShields();
     
     activeEncounter = remainingEncounters.shift();
+    if (typeof activeEncounter.distanceAU !== 'number') {
+        activeEncounter.distanceAU = 0.35;
+    }
+    console.log('[EncounterTrigger] Encounter created', {
+        shipName: activeEncounter.name,
+        shipType: activeEncounter.type,
+        distanceAU: activeEncounter.distanceAU,
+        thresholdAU: CLOSE_RANGE_SPRITE_AU,
+        willUseCloseSprite: activeEncounter.distanceAU <= CLOSE_RANGE_SPRITE_AU
+    });
     isPaused = true;
     
     if (travelInterval) {
